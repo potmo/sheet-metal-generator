@@ -14,13 +14,26 @@ struct SideView: ShapeMaker {
     @CanvasBuilder
     func shapes(from state: InputState) -> [DrawableShape] {
         Decoration(color: .cyan) {
-            Circle(center: [0, 0, 0], radius: 1, plane: renderPlane)
+            Circle(center: [0, 0, 0], radius: 3, plane: renderPlane)
         }
 
+
+        Decoration(color: .red) {
+            Arrow(vector: [3,0,0], origo: [0,0,0], plane: renderPlane)
+        }
+
+        Decoration(color: .green) {
+            Arrow(vector: [0,3,0], origo: [0,0,0], plane: renderPlane)
+        }
+
+        Decoration(color: .blue) {
+            Arrow(vector: [0,0,3], origo: [0,0,0], plane: renderPlane)
+        }
+
+        let northBendAngle = (90 + state.angleAreoundX).degreesToRadians
         let eastBendAngle = (90 - state.angleAreoundY).degreesToRadians
+        let southBendAngle = (90 - state.angleAreoundX).degreesToRadians
         let westBendAngle = (90 + state.angleAreoundY).degreesToRadians
-        let northBendAngle = (90 - state.angleAreoundX).degreesToRadians
-        let southBendAngle = (90 + state.angleAreoundX).degreesToRadians
 
         // offset in to make space for sheet thickness
         let plane = Plane(fitting: state.size - state.thickness * 2,

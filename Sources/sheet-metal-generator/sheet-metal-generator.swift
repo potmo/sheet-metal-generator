@@ -16,6 +16,8 @@ struct HelloWorld: App {
             NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
             NSApp.windows.first?.makeKeyAndOrderFront(nil)
+            //NSApp.windows.first?.isOpaque = false
+            //NSApp.windows.first?.backgroundColor = .clear
         }
     }
 
@@ -40,9 +42,11 @@ struct HelloWorld: App {
             }
 
             HStack {
+                //CanvasView(state: state, maker: FlatView())
                 CanvasView(state: state, maker: SideView(renderPlane: .xy))
                 CanvasView(state: state, maker: SideView(renderPlane: .xz))
                 CanvasView(state: state, maker: SideView(renderPlane: .yz))
+
             }
         }
     }

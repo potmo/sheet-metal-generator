@@ -180,6 +180,15 @@ struct SheetEdgeFace {
         return (topVertex0 - bottomVertex0).normalized
     }
 
+    var topEdgeDirection: Vector {
+        return (topVertex1 - topVertex0).normalized
+    }
+
+    var sideEdgeDirection: Vector {
+        return (bottomVertex0 - topVertex0).normalized
+    }
+
+
     var faceNormal: Vector {
         return setFaceNormal
     }
@@ -204,8 +213,8 @@ struct OrtographicSheet: DrawableObject {
     let renderPlane: AxisPlane
 
     @CanvasBuilder var shapes: [DrawableShape] {
-        let bottom = sheet.bottom.verticies.map { $0.inPlane(renderPlane) }
-        let top = sheet.top.verticies.map { $0.inPlane(renderPlane) }
+        let bottom = sheet.bottom.vertices.map { $0.inPlane(renderPlane) }
+        let top = sheet.top.vertices.map { $0.inPlane(renderPlane) }
 
         let sides = [
             (sheet.northSide, sheet.northFace),
@@ -235,7 +244,7 @@ struct OrtographicSheet: DrawableObject {
             }
         }
 
-        let topCenter = sheet.top.verticies.reduce(Vector(), +).scaled(by: 1.0 / 4.0)
+        let topCenter = sheet.top.vertices.reduce(Vector(), +).scaled(by: 1.0 / 4.0)
         Decoration(color: .pink, lineStyle: .dashed()) {
             LineSection(from: topCenter, to: topCenter + sheet.normal.scaled(by: 5.0), plane: renderPlane)
         }

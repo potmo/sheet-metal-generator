@@ -1,3 +1,3 @@
 # sheet-metal-generator
 
-A description of this package.
+A package for creating foldable mirrors in sheet metal

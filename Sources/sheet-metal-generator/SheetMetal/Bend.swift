@@ -44,6 +44,7 @@ struct Bend {
     }
 
     /// Bend allowance is defined as the material required to add to the overall length of the sheet metal in order for it to get cut in the right size.
+    /// This is basically the full arc length of the bend at the netrual axis of the kFactor
     static func bendAllowance(angle: Double, insideRadius: Double, kFactor: Double, materialThickness: Double) -> Double {
         return angle * (insideRadius + kFactor * materialThickness)
     }
@@ -54,15 +55,28 @@ struct OrtographicBend: DrawableObject {
     let renderPlane: AxisPlane
 
     @CanvasBuilder var shapes: [DrawableShape] {
-       // let rotationPoint = bend.fromFace.bottomVertex0 + bend.fromFace.sheetNormal * -bend.radius
+        let apex = bend.fromFace.topVertex0 + bend.fromFace.faceNormal * bend.outsideSetback
+
         let rotationPoint = bend.fromFace.bottomVertex0 + bend.fromFace.sheetNormal * -bend.radius
-        let rotationAxis = (bend.fromFace.bottomVertex0 - bend.fromFace.bottomVertex1).normalized
-        let rotation = Quat(angle: bend.angle, axis: rotationAxis)
+        let rotationAxis = bend.fromFace.topEdgeDirection
+        let horizontal = bend.fromFace.faceNormal.with(z: 0).normalized
+        let rotation = simd_quatd(from: bend.fromFace.sheetNormal, to: horizontal)
+
+        // let rotationPoint = bend.fromFace.bottomVertex0 + Vector(0, 0, 1) * -bend.radius
+
+        // let rotationAxis = (bend.fromFace.bottomVertex1 - bend.fromFace.bottomVertex0).normalized
+
+        // let rotationPoint = bend.fromFace.bottomVertex0 + -rotationAxis.xyPerp * -bend.radius
+
+        // let rotationAxis = Vector.normalFromClockwiseVertices(a: rotationPoint, b: apex, c: bend.fromFace.bottomVertex0)
+
+        // let rotationAxis = bend.fromFace.sheetNormal.cross(bend.fromFace.faceNormal)
+
+      //  let rotation = Quat(angle: bend.angle, axis: rotationAxis)
         let firstBendPoint = bend.fromFace.bottomVertex0
-        let secondBendPoint = rotationPoint + rotation.act(bend.fromFace.bottomVertex0 - rotationPoint)
+        let secondBendPoint = rotationPoint + rotation.act(firstBendPoint - rotationPoint)
         let firstOuterBendPoint = bend.fromFace.topVertex0
         let secondOuterBendPoint = rotationPoint + rotation.act(firstOuterBendPoint - rotationPoint)
-        let apex = bend.fromFace.topVertex0 + bend.fromFace.faceNormal * bend.outsideSetback
 
         let vectorToApex = (apex - rotationPoint).normalized
         let midVectorInSheet = simd_slerp(.identity, rotation, 0.5).act(bend.fromFace.sheetNormal)
@@ -75,7 +89,11 @@ struct OrtographicBend: DrawableObject {
             Arrow(vector: midVectorInSheet.scaled(by: 5), origo: rotationPoint, plane: renderPlane)
         }
 
-        Decoration(color: .pink, lineStyle: .dashed()) {
+        Decoration(color: .red) {
+            Arrow(vector: bend.fromFace.faceNormal.scaled(by: 5), origo: rotationPoint, plane: renderPlane)
+        }
+
+        Decoration(color: .pink) {
             LineSection(from: rotationPoint - rotationAxis.scaled(by: 2.5),
                         to: rotationPoint + rotationAxis.scaled(by: 2.5),
                         plane: renderPlane)
@@ -139,10 +157,12 @@ struct OrtographicBend: DrawableObject {
             LineSection(from: secondOuterBendPoint,
                         to: secondOuterBendPoint + sideVector,
                         plane: renderPlane)
-        case let .bend(bend):
-            let a = 0
-        case let .extrusion(sheet):
-            let a = 0
+        case .bend(_):
+            // FIXME: This is onluy to prevent a warning
+            [Circle]()
+        case .extrusion(_):
+            // FIXME: This is onluy to prevent a warning
+            [Circle]()
         }
     }
 }
