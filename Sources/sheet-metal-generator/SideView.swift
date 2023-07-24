@@ -17,17 +17,27 @@ struct SideView: ShapeMaker {
             Circle(center: [0, 0, 0], radius: 3, plane: renderPlane)
         }
 
-
         Decoration(color: .red) {
-            Arrow(vector: [3,0,0], origo: [0,0,0], plane: renderPlane)
+            Arrow(vector: [3, 0, 0], origo: [0, 0, 0], plane: renderPlane)
         }
 
         Decoration(color: .green) {
-            Arrow(vector: [0,3,0], origo: [0,0,0], plane: renderPlane)
+            Arrow(vector: [0, 3, 0], origo: [0, 0, 0], plane: renderPlane)
         }
 
         Decoration(color: .blue) {
-            Arrow(vector: [0,0,3], origo: [0,0,0], plane: renderPlane)
+            Arrow(vector: [0, 0, 3], origo: [0, 0, 0], plane: renderPlane)
+        }
+
+        // draw outline
+        Decoration(color: .orange, lineStyle: .dashed()) {
+            let outline = [
+                Vector(-state.size / 2, -state.size / 2, 0),
+                Vector(state.size / 2, -state.size / 2, 0),
+                Vector(state.size / 2, state.size / 2, 0),
+                Vector(-state.size / 2, state.size / 2, 0),
+            ]
+            Polygon(vertices: outline, renderPlane: renderPlane)
         }
 
         let northBendAngle = (90 + state.angleAreoundX).degreesToRadians
@@ -39,62 +49,63 @@ struct SideView: ShapeMaker {
         let plane = Plane(fitting: state.size - state.thickness * 2,
                           rotatedAroundX: state.angleAreoundX,
                           andY: state.angleAreoundY)
-            .offsetted(by: [0, 0, -state.thickness]) // bring top face down to zero
-            .offsetted(by: [0, 0, state.height]) // bring height up so it stands on zero
+        // .offsetted(by: [0, 0, -state.thickness]) // bring top face down to zero
+        //   .offsetted(by: [0, 0, state.height]) // bring height up so it stands on zero
 
         let preSheet = Sheet(extrudendFrom: plane, thickness: state.thickness)
-/*
-        Decoration(color: .orange) {
-            let testSheet = preSheet
-            LineSection(from: testSheet.northFace.bottomVertex0, to: testSheet.northFace.bottomVertex1, plane: renderPlane)
-            LineSection(from: testSheet.eastFace.bottomVertex0, to: testSheet.eastFace.bottomVertex1, plane: renderPlane)
-            LineSection(from: testSheet.southFace.bottomVertex0, to: testSheet.southFace.bottomVertex1, plane: renderPlane)
-            LineSection(from: testSheet.westFace.bottomVertex0, to: testSheet.westFace.bottomVertex1, plane: renderPlane)
+        /*
+                Decoration(color: .orange) {
+                    let testSheet = preSheet
+                    LineSection(from: testSheet.northFace.bottomVertex0, to: testSheet.northFace.bottomVertex1, plane: renderPlane)
+                    LineSection(from: testSheet.eastFace.bottomVertex0, to: testSheet.eastFace.bottomVertex1, plane: renderPlane)
+                    LineSection(from: testSheet.southFace.bottomVertex0, to: testSheet.southFace.bottomVertex1, plane: renderPlane)
+                    LineSection(from: testSheet.westFace.bottomVertex0, to: testSheet.westFace.bottomVertex1, plane: renderPlane)
 
-            let northMid = testSheet.northFace.bottomVertex0 + (testSheet.northFace.bottomVertex1 - testSheet.northFace.bottomVertex0).scaled(by: 0.5)
-            LineSection(from: northMid,
-                        to: northMid + testSheet.northFace.faceNormal.scaled(by: 5), plane: renderPlane)
+                    let northMid = testSheet.northFace.bottomVertex0 + (testSheet.northFace.bottomVertex1 - testSheet.northFace.bottomVertex0).scaled(by: 0.5)
+                    LineSection(from: northMid,
+                                to: northMid + testSheet.northFace.faceNormal.scaled(by: 5), plane: renderPlane)
 
-            Circle(center: northMid, radius: 3, plane: renderPlane)
-        }
+                    Circle(center: northMid, radius: 3, plane: renderPlane)
+                }
 
-        Decoration(color: .teal) {
-            LineSection(from: preSheet.northFace.topVertex0, to: preSheet.northFace.topVertex1, plane: renderPlane)
-            LineSection(from: preSheet.eastFace.topVertex0, to: preSheet.eastFace.topVertex1, plane: renderPlane)
-            LineSection(from: preSheet.southFace.topVertex0, to: preSheet.southFace.topVertex1, plane: renderPlane)
-            LineSection(from: preSheet.westFace.topVertex0, to: preSheet.westFace.topVertex1, plane: renderPlane)
+                Decoration(color: .teal) {
+                    LineSection(from: preSheet.northFace.topVertex0, to: preSheet.northFace.topVertex1, plane: renderPlane)
+                    LineSection(from: preSheet.eastFace.topVertex0, to: preSheet.eastFace.topVertex1, plane: renderPlane)
+                    LineSection(from: preSheet.southFace.topVertex0, to: preSheet.southFace.topVertex1, plane: renderPlane)
+                    LineSection(from: preSheet.westFace.topVertex0, to: preSheet.westFace.topVertex1, plane: renderPlane)
 
-            let northMid = preSheet.northFace.topVertex0 + (preSheet.northFace.topVertex1 - preSheet.northFace.topVertex0).scaled(by: 0.5)
-            LineSection(from: northMid,
-                        to: northMid + preSheet.northFace.faceNormal.scaled(by: 5), plane: renderPlane)
+                    let northMid = preSheet.northFace.topVertex0 + (preSheet.northFace.topVertex1 - preSheet.northFace.topVertex0).scaled(by: 0.5)
+                    LineSection(from: northMid,
+                                to: northMid + preSheet.northFace.faceNormal.scaled(by: 5), plane: renderPlane)
 
-            Circle(center: northMid, radius: 3, plane: renderPlane)
-        }
- */
+                    Circle(center: northMid, radius: 3, plane: renderPlane)
+                }
+         */
 
-        let sheet = preSheet.extrudedEast(-Bend.insideSetback(angle: eastBendAngle,
-                                                              radius: state.bendRadius))
+        let sheet = preSheet
+            .extrudedEast(-Bend.insideSetback(angle: eastBendAngle,
+                                              radius: state.bendRadius))
             .extrudedWest(-Bend.insideSetback(angle: westBendAngle,
                                               radius: state.bendRadius))
             .extrudedNorth(-Bend.insideSetback(angle: northBendAngle,
                                                radius: state.bendRadius))
             .extrudedSouth(-Bend.insideSetback(angle: southBendAngle,
                                                radius: state.bendRadius))
-/*
-        Decoration(color: .pink) {
-            let testSheet = sheet
-            LineSection(from: testSheet.northFace.bottomVertex0, to: testSheet.northFace.bottomVertex1, plane: renderPlane)
-            LineSection(from: testSheet.eastFace.bottomVertex0, to: testSheet.eastFace.bottomVertex1, plane: renderPlane)
-            LineSection(from: testSheet.southFace.bottomVertex0, to: testSheet.southFace.bottomVertex1, plane: renderPlane)
-            LineSection(from: testSheet.westFace.bottomVertex0, to: testSheet.westFace.bottomVertex1, plane: renderPlane)
+        /*
+         Decoration(color: .pink) {
+             let testSheet = sheet
+             LineSection(from: testSheet.northFace.bottomVertex0, to: testSheet.northFace.bottomVertex1, plane: renderPlane)
+             LineSection(from: testSheet.eastFace.bottomVertex0, to: testSheet.eastFace.bottomVertex1, plane: renderPlane)
+             LineSection(from: testSheet.southFace.bottomVertex0, to: testSheet.southFace.bottomVertex1, plane: renderPlane)
+             LineSection(from: testSheet.westFace.bottomVertex0, to: testSheet.westFace.bottomVertex1, plane: renderPlane)
 
-            let northMid = testSheet.northFace.bottomVertex0 + (testSheet.northFace.bottomVertex1 - testSheet.northFace.bottomVertex0).scaled(by: 0.5)
-            LineSection(from: northMid,
-                        to: northMid + testSheet.northFace.faceNormal.scaled(by: 5), plane: renderPlane)
+             let northMid = testSheet.northFace.bottomVertex0 + (testSheet.northFace.bottomVertex1 - testSheet.northFace.bottomVertex0).scaled(by: 0.5)
+             LineSection(from: northMid,
+                         to: northMid + testSheet.northFace.faceNormal.scaled(by: 5), plane: renderPlane)
 
-            Circle(center: northMid, radius: 3, plane: renderPlane)
-        }
-        */
+             Circle(center: northMid, radius: 3, plane: renderPlane)
+         }
+         */
 
         let eastBend = Bend(from: sheet.eastFace,
                             angle: eastBendAngle,

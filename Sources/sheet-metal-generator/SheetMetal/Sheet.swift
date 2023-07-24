@@ -188,7 +188,6 @@ struct SheetEdgeFace {
         return (bottomVertex0 - topVertex0).normalized
     }
 
-
     var faceNormal: Vector {
         return setFaceNormal
     }

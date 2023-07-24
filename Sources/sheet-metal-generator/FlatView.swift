@@ -21,7 +21,7 @@ struct FlatView: ShapeMaker {
             Arrow(vector: [0, 3, 0], origo: [0, 0, 0], plane: renderPlane)
         }
 
-        let plane = Plane(fitting: state.size, // offset in to make space for sheet thickness
+        let plane = Plane(fitting: state.size,
                           rotatedAroundX: state.angleAreoundX,
                           andY: state.angleAreoundY,
                           rotatedBackToXyPlane: true)
@@ -44,7 +44,7 @@ struct FlatView: ShapeMaker {
         .map(\.degreesToRadians)
 
         let bendAllowances = bendAngles.map { angle in
-            return Bend.bendAllowance(angle: .pi / 2 + angle,
+            return Bend.bendAllowance(angle: .pi / 2 + angle, // add 90 degrees
                                       insideRadius: state.bendRadius,
                                       kFactor: state.kFactor,
                                       materialThickness: state.thickness)

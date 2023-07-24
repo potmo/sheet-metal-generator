@@ -184,7 +184,7 @@ struct PlaneEdge {
     }
 
     var normal: Vector {
-        return -direction.xyPerp
+        return plane.normal.cross(direction)
     }
 
     var direction: Vector {
@@ -252,27 +252,12 @@ struct PlaneEdge {
 
         let directionVector = direction.scaled(by: amount)
 
-        LineSection(from: midPoint, to: midPoint + directionVector, plane: .xy)
-
         // get the corners projected onto the mid line
         let firstProjection = (plane.vertices[vertex0index] - midPoint).projected(onto: directionVector)
         let secondProjection = (plane.vertices[vertex1index] - midPoint).projected(onto: directionVector)
 
-        Decoration(color: .red) {
-            LineSection(from: midPoint, to: midPoint + firstProjection, plane: .xy)
-        }
-
-        Decoration(color: .blue) {
-            LineSection(from: midPoint, to: midPoint + secondProjection, plane: .xy)
-        }
-
         let newPosition0 = plane.vertices[vertex0index] + directionVector - firstProjection
         let newPosition1 = plane.vertices[vertex1index] + directionVector - secondProjection
-
-        Decoration(color: .red) {
-            LineSection(from: plane.vertices[vertex0index], to: newPosition0, plane: .xy)
-            LineSection(from: plane.vertices[vertex1index], to: newPosition1, plane: .xy)
-        }
 
         var vertices = plane.vertices // copy
 
