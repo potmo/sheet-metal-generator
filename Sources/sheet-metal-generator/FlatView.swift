@@ -14,11 +14,11 @@ struct FlatView: ShapeMaker {
     @CanvasBuilder
     func shapes(from state: InputState) -> [DrawableShape] {
         Decoration(color: .red) {
-            Arrow(vector: [3, 0, 0], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [3, 0, 0], origo: [0, 0, 0])
         }
 
         Decoration(color: .green) {
-            Arrow(vector: [0, 3, 0], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [0, 3, 0], origo: [0, 0, 0])
         }
 
         let plane = Plane(fitting: state.size,
@@ -27,10 +27,10 @@ struct FlatView: ShapeMaker {
                           rotatedBackToXyPlane: true)
 
         Decoration(color: .red, lineStyle: .dashed()) {
-            Polygon(vertices: plane.vertices, renderPlane: renderPlane)
+            Polygon(vertices: plane.vertices)
         }
 
-        let northBendAngle =  +state.angleAreoundX
+        let northBendAngle = +state.angleAreoundX
         let eastBendAngle = -state.angleAreoundY
         let southBendAngle = -state.angleAreoundX
         let westBendAngle = +state.angleAreoundY
@@ -62,34 +62,33 @@ struct FlatView: ShapeMaker {
         let westBendPlane = projectedPlane.west.pushPulledInNormalDirection(by: bendAllowances[3])
 
         Decoration(color: .green, lineStyle: .dashed()) {
-            Polygon(vertices: projectedPlane.vertices, renderPlane: renderPlane)
+            Polygon(vertices: projectedPlane.vertices)
         }
 
         Decoration(color: .blue) {
-            Polygon(vertices: northBendPlane.vertices, renderPlane: renderPlane)
-            Polygon(vertices: eastBendPlane.vertices, renderPlane: renderPlane)
-            Polygon(vertices: southBendPlane.vertices, renderPlane: renderPlane)
-            Polygon(vertices: westBendPlane.vertices, renderPlane: renderPlane)
+            Polygon(vertices: northBendPlane.vertices)
+            Polygon(vertices: eastBendPlane.vertices)
+            Polygon(vertices: southBendPlane.vertices)
+            Polygon(vertices: westBendPlane.vertices)
         }
 
-
-        let northRotation = Quat(angle: bendAngles[0], axis: Vector(0,0,1)).act(northBendPlane.north.normal)
+        let northRotation = Quat(angle: bendAngles[0], axis: Vector(0, 0, 1)).act(northBendPlane.north.normal)
         let northSide = northBendPlane.north.pushPulled(by: 50, in: northRotation)
 
-        let eastRotation = Quat(angle: bendAngles[1], axis: Vector(0,0,1)).act(eastBendPlane.east.normal)
+        let eastRotation = Quat(angle: bendAngles[1], axis: Vector(0, 0, 1)).act(eastBendPlane.east.normal)
         let eastSide = eastBendPlane.east.pushPulled(by: 50, in: eastRotation)
 
-        let southRotation = Quat(angle: bendAngles[2], axis: Vector(0,0,1)).act(southBendPlane.south.normal)
+        let southRotation = Quat(angle: bendAngles[2], axis: Vector(0, 0, 1)).act(southBendPlane.south.normal)
         let southSide = southBendPlane.south.pushPulled(by: 50, in: southRotation)
 
-        let westRotation = Quat(angle: bendAngles[3], axis: Vector(0,0,1)).act(westBendPlane.west.normal)
+        let westRotation = Quat(angle: bendAngles[3], axis: Vector(0, 0, 1)).act(westBendPlane.west.normal)
         let westSide = westBendPlane.west.pushPulled(by: 50, in: westRotation)
 
         Decoration(color: .indigo) {
-            Polygon(vertices: northSide.vertices, renderPlane: renderPlane)
-            Polygon(vertices: eastSide.vertices, renderPlane: renderPlane)
-            Polygon(vertices: southSide.vertices, renderPlane: renderPlane)
-            Polygon(vertices: westSide.vertices, renderPlane: renderPlane)
+            Polygon(vertices: northSide.vertices)
+            Polygon(vertices: eastSide.vertices)
+            Polygon(vertices: southSide.vertices)
+            Polygon(vertices: westSide.vertices)
         }
     }
 }

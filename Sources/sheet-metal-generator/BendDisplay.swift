@@ -21,17 +21,17 @@ struct BendDisplay: ShapeMaker {
 
         let centerOfRotation = topVector + -topVector.xyPerp.normalized * state.bendRadius
 
-        LineSection(from: start.xy + thicknessVector.xy,
-                    to: start.xy + thicknessVector.xy + topVector.xy)
+        LineSection(from: start + thicknessVector,
+                    to: start + thicknessVector + topVector)
 
-        LineSection(from: start.xy, to: topVector.xy)
+        LineSection(from: start, to: topVector)
 
-        Arc(center: centerOfRotation.xy,
+        Arc(center: centerOfRotation,
             radius: state.bendRadius,
             startAngle: (state.angleAreoundY - 90).degreesToRadians,
             endAngle: 0)
 
-        Arc(center: centerOfRotation.xy,
+        Arc(center: centerOfRotation,
             radius: state.bendRadius + state.thickness,
             startAngle: (state.angleAreoundY - 90).degreesToRadians,
             endAngle: 0)
@@ -39,7 +39,7 @@ struct BendDisplay: ShapeMaker {
         let neutralAxisRadius = state.bendRadius + state.thickness * state.kFactor
 
         Decoration(color: .green, lineStyle: .dashed()) {
-            Arc(center: centerOfRotation.xy,
+            Arc(center: centerOfRotation,
                 radius: neutralAxisRadius,
                 startAngle: (state.angleAreoundY - 90).degreesToRadians,
                 endAngle: 0)
@@ -49,17 +49,17 @@ struct BendDisplay: ShapeMaker {
         let secondBendLine = firstBendLine.rotated(by: (90 - state.angleAreoundY).degreesToRadians, around: .z, pivot: centerOfRotation)
 
         Decoration(color: .black.opacity(0.5), lineStyle: .dashed(phase: 2, lengths: [2, 2])) {
-            LineSection(from: firstBendLine, to: firstBendLine + thicknessVector, plane: .xy)
-            LineSection(from: secondBendLine, to: secondBendLine + downThicknessVector, plane: .xy)
+            LineSection(from: firstBendLine, to: firstBendLine + thicknessVector)
+            LineSection(from: secondBendLine, to: secondBendLine + downThicknessVector)
         }
 
-        Point(firstBendLine, plane: .xy)
-        Point(secondBendLine, plane: .xy)
-        Point(centerOfRotation, plane: .xy)
+        Point(firstBendLine)
+        Point(secondBendLine)
+        Point(centerOfRotation)
 
         Decoration(color: .gray, lineStyle: .dashed(phase: 2, lengths: [2, 2])) {
-            LineSection(from: centerOfRotation, to: firstBendLine, plane: .xy)
-            LineSection(from: centerOfRotation, to: secondBendLine, plane: .xy)
+            LineSection(from: centerOfRotation, to: firstBendLine)
+            LineSection(from: centerOfRotation, to: secondBendLine)
         }
 
         let setBack = outsideSetback(angle: (90 - state.angleAreoundY).degreesToRadians,
@@ -73,26 +73,22 @@ struct BendDisplay: ShapeMaker {
 
         let apex = start + topVector + thicknessVector + setBackVector
         Decoration(color: .blue) {
-            Point(apex, plane: .xy)
+            Point(apex)
         }
 
         Decoration(color: .red, lineStyle: .dashed(phase: 2, lengths: [2, 2])) {
             LineSection(from: start + topVector + thicknessVector,
-                        to: start + topVector + thicknessVector + setBackVector,
-                        plane: .xy)
+                        to: start + topVector + thicknessVector + setBackVector)
 
             LineSection(from: start + topVector + thicknessVector + setBackVector,
-                        to: start + topVector + thicknessVector + setBackVector + setBackDownVector,
-                        plane: .xy)
+                        to: start + topVector + thicknessVector + setBackVector + setBackDownVector)
         }
 
         LineSection(from: start + topVector + thicknessVector + setBackVector + setBackDownVector,
-                    to: start + topVector + thicknessVector + setBackVector + setBackDownVector + downVector,
-                    plane: .xy)
+                    to: start + topVector + thicknessVector + setBackVector + setBackDownVector + downVector)
 
         LineSection(from: start + topVector + thicknessVector + setBackVector + setBackDownVector - downThicknessVector,
-                    to: start + topVector + thicknessVector + setBackVector + setBackDownVector + downVector - downThicknessVector,
-                    plane: .xy)
+                    to: start + topVector + thicknessVector + setBackVector + setBackDownVector + downVector - downThicknessVector)
     }
 
     /// Bend allowance is defined as the material required to add to the overall length of the sheet metal in order for it to get cut in the right size.

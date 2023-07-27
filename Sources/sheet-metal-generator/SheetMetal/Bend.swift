@@ -52,7 +52,7 @@ struct Bend {
 
 struct OrtographicBend: DrawableObject {
     let bend: Bend
-    let renderPlane: AxisPlane
+
 
     @CanvasBuilder var shapes: [DrawableShape] {
         let apex = bend.fromFace.topVertex0 + bend.fromFace.faceNormal * bend.outsideSetback
@@ -82,63 +82,57 @@ struct OrtographicBend: DrawableObject {
         let midVectorInSheet = simd_slerp(.identity, rotation, 0.5).act(bend.fromFace.sheetNormal)
 
         Decoration(color: .blue) {
-            Arrow(vector: vectorToApex.scaled(by: 5), origo: rotationPoint, plane: renderPlane)
+            Arrow(vector: vectorToApex.scaled(by: 5), origo: rotationPoint)
         }
 
         Decoration(color: .green) {
-            Arrow(vector: midVectorInSheet.scaled(by: 5), origo: rotationPoint, plane: renderPlane)
+            Arrow(vector: midVectorInSheet.scaled(by: 5), origo: rotationPoint)
         }
 
         Decoration(color: .red) {
-            Arrow(vector: bend.fromFace.faceNormal.scaled(by: 5), origo: rotationPoint, plane: renderPlane)
+            Arrow(vector: bend.fromFace.faceNormal.scaled(by: 5), origo: rotationPoint)
         }
 
         Decoration(color: .pink) {
             LineSection(from: rotationPoint - rotationAxis.scaled(by: 2.5),
-                        to: rotationPoint + rotationAxis.scaled(by: 2.5),
-                        plane: renderPlane)
+                        to: rotationPoint + rotationAxis.scaled(by: 2.5))
         }
 
         let faceCenter = bend.fromFace.vertices.reduce(Vector(), +).scaled(by: 1.0 / 4.0)
         Decoration(color: .pink, lineStyle: .dashed()) {
-            LineSection(from: faceCenter, to: faceCenter + bend.fromFace.faceNormal.scaled(by: 5.0), plane: renderPlane)
+            LineSection(from: faceCenter, to: faceCenter + bend.fromFace.faceNormal.scaled(by: 5.0))
         }
 
         // radius
         Decoration(color: .gray, lineStyle: .dashed()) {
-            LineSection(from: rotationPoint, to: firstBendPoint, plane: renderPlane)
-            LineSection(from: rotationPoint, to: secondBendPoint, plane: renderPlane)
+            LineSection(from: rotationPoint, to: firstBendPoint)
+            LineSection(from: rotationPoint, to: secondBendPoint)
         }
 
         // setback
         Decoration(color: .blue, lineStyle: .dashed()) {
             LineSection(from: bend.fromFace.topVertex0,
-                        to: apex,
-                        plane: renderPlane)
+                        to: apex)
             LineSection(from: apex,
-                        to: secondOuterBendPoint,
-                        plane: renderPlane)
+                        to: secondOuterBendPoint)
         }
 
         // walls
         Decoration(color: .red) {
             Orbit(pivot: rotationPoint,
                   point: bend.fromFace.bottomVertex0,
-                  rotation: rotation,
-                  renderPlane: renderPlane)
+                  rotation: rotation)
 
             Orbit(pivot: rotationPoint,
                   point: bend.fromFace.topVertex0,
-                  rotation: rotation,
-                  renderPlane: renderPlane)
+                  rotation: rotation)
         }
 
         // neutral axis
         Decoration(color: .green, lineStyle: .dashed()) {
             Orbit(pivot: rotationPoint,
                   point: bend.fromFace.bottomVertex0 + bend.fromFace.sheetNormal * bend.thickness * bend.kFactor,
-                  rotation: rotation,
-                  renderPlane: renderPlane)
+                  rotation: rotation)
         }
 
         switch bend.edge {
@@ -146,17 +140,13 @@ struct OrtographicBend: DrawableObject {
             let sideVector = (bend.fromFace.topVertex1 - bend.fromFace.topVertex0)
             // sides
             LineSection(from: secondBendPoint,
-                        to: secondOuterBendPoint,
-                        plane: renderPlane)
+                        to: secondOuterBendPoint)
             LineSection(from: secondBendPoint + sideVector,
-                        to: secondOuterBendPoint + sideVector,
-                        plane: renderPlane)
+                        to: secondOuterBendPoint + sideVector)
             LineSection(from: secondBendPoint,
-                        to: secondBendPoint + sideVector,
-                        plane: renderPlane)
+                        to: secondBendPoint + sideVector)
             LineSection(from: secondOuterBendPoint,
-                        to: secondOuterBendPoint + sideVector,
-                        plane: renderPlane)
+                        to: secondOuterBendPoint + sideVector)
         case .bend(_):
             // FIXME: This is onluy to prevent a warning
             [Circle]()

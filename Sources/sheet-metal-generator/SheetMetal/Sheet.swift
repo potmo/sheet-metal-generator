@@ -209,11 +209,10 @@ indirect enum SheetEdge {
 
 struct OrtographicSheet: DrawableObject {
     let sheet: Sheet
-    let renderPlane: AxisPlane
 
     @CanvasBuilder var shapes: [DrawableShape] {
-        let bottom = sheet.bottom.vertices.map { $0.inPlane(renderPlane) }
-        let top = sheet.top.vertices.map { $0.inPlane(renderPlane) }
+        let bottom = sheet.bottom.vertices
+        let top = sheet.top.vertices
 
         let sides = [
             (sheet.northSide, sheet.northFace),
@@ -225,27 +224,27 @@ struct OrtographicSheet: DrawableObject {
         for (side, face) in sides {
             switch side {
             case .solid:
-                LineSection(from: face.topVertex0, to: face.topVertex1, plane: renderPlane)
-                LineSection(from: face.bottomVertex0, to: face.bottomVertex1, plane: renderPlane)
+                LineSection(from: face.topVertex0, to: face.topVertex1)
+                LineSection(from: face.bottomVertex0, to: face.bottomVertex1)
             case let .bend(bend):
                 Decoration(lineStyle: .dashed(lengths: [2, 5, 2])) {
                     Decoration(color: .blue) {
-                        LineSection(from: face.topVertex0, to: face.topVertex1, plane: renderPlane)
+                        LineSection(from: face.topVertex0, to: face.topVertex1)
                     }
 
                     Decoration(color: .green) {
-                        LineSection(from: face.bottomVertex0, to: face.bottomVertex1, plane: renderPlane)
+                        LineSection(from: face.bottomVertex0, to: face.bottomVertex1)
                     }
                 }
-                OrtographicBend(bend: bend, renderPlane: renderPlane)
+                OrtographicBend(bend: bend)
             case let .extrusion(sheet):
-                OrtographicSheet(sheet: sheet, renderPlane: renderPlane)
+                OrtographicSheet(sheet: sheet)
             }
         }
 
         let topCenter = sheet.top.vertices.reduce(Vector(), +).scaled(by: 1.0 / 4.0)
         Decoration(color: .pink, lineStyle: .dashed()) {
-            LineSection(from: topCenter, to: topCenter + sheet.normal.scaled(by: 5.0), plane: renderPlane)
+            LineSection(from: topCenter, to: topCenter + sheet.normal.scaled(by: 5.0))
         }
 
         // corners

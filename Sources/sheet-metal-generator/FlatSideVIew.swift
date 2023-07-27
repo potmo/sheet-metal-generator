@@ -9,24 +9,22 @@ import SwiftUI
 struct FlatSideView: ShapeMaker {
     typealias StateType = InputState
 
-    let renderPlane: AxisPlane
-
     @CanvasBuilder
     func shapes(from state: InputState) -> [DrawableShape] {
         Decoration(color: .cyan) {
-            Circle(center: [0, 0, 0], radius: 3, plane: renderPlane)
+            Circle(center: [0, 0, 0], radius: 3)
         }
 
         Decoration(color: .red) {
-            Arrow(vector: [3, 0, 0], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [3, 0, 0], origo: [0, 0, 0])
         }
 
         Decoration(color: .green) {
-            Arrow(vector: [0, 3, 0], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [0, 3, 0], origo: [0, 0, 0])
         }
 
         Decoration(color: .blue) {
-            Arrow(vector: [0, 0, 3], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [0, 0, 3], origo: [0, 0, 0])
         }
 
         // draw outline
@@ -37,7 +35,7 @@ struct FlatSideView: ShapeMaker {
                 Vector(state.size / 2, state.size / 2, 0),
                 Vector(-state.size / 2, state.size / 2, 0),
             ]
-            Polygon(vertices: outline, renderPlane: renderPlane)
+            Polygon(vertices: outline)
         }
 
         let northBendAngle = +state.angleAreoundX
@@ -58,7 +56,7 @@ struct FlatSideView: ShapeMaker {
                                    andY: state.angleAreoundY)
 
         Decoration(color: .green, lineStyle: .dashed()) {
-            Polygon(vertices: prescaledPlane.vertices, renderPlane: renderPlane)
+            Polygon(vertices: prescaledPlane.vertices)
         }
 
         // since the edges gets distorted because of the compound angle we have to correct them so that
@@ -94,22 +92,22 @@ struct FlatSideView: ShapeMaker {
             .west.resizedAlongSides(byDistanceAlongNormal: -insideSetbacks[3])
 
         Decoration(color: .green) {
-            Arrow(vector: plane.north.normal.scaled(by: 10.0), origo: plane.north.vertex0, plane: renderPlane)
+            Arrow(vector: plane.north.normal.scaled(by: 10.0), origo: plane.north.vertex0)
         }
 
         let neutralPlane = plane.offsetted(by: plane.normal * state.thickness * state.kFactor)
         let topPlane = plane.offsetted(by: plane.normal * state.thickness)
 
         Decoration(color: .blue) {
-            Polygon(vertices: plane.vertices, renderPlane: renderPlane)
+            Polygon(vertices: plane.vertices)
         }
 
         Decoration(color: .black, lineStyle: .dashed()) {
-            Polygon(vertices: neutralPlane.vertices, renderPlane: renderPlane)
+            Polygon(vertices: neutralPlane.vertices)
         }
 
         Decoration(color: .red) {
-            Polygon(vertices: topPlane.vertices, renderPlane: renderPlane)
+            Polygon(vertices: topPlane.vertices)
         }
 
         let northRotationPoint = plane.north.vertex0 + plane.normal * -state.bendRadius
@@ -120,46 +118,40 @@ struct FlatSideView: ShapeMaker {
         Decoration(color: .red) {
             Orbit(pivot: northRotationPoint,
                   point: plane.north.vertex0,
-                  rotation: northRotation,
-                  renderPlane: renderPlane)
+                  rotation: northRotation)
         }
 
         Decoration(lineStyle: .dashed()) {
             Orbit(pivot: northRotationPoint,
                   point: plane.north.vertex0 + plane.normal * state.thickness * state.kFactor,
-                  rotation: northRotation,
-                  renderPlane: renderPlane)
+                  rotation: northRotation)
         }
 
         Decoration(color: .red) {
             Orbit(pivot: northRotationPoint,
                   point: plane.north.vertex0 + plane.normal * state.thickness,
-                  rotation: northRotation,
-                  renderPlane: renderPlane)
+                  rotation: northRotation)
         }
 
         let northEndPoint = northRotationPoint + northRotation.act(plane.north.vertex0 - northRotationPoint)
-        Circle(center: northEndPoint, radius: 2, plane: renderPlane)
+        Circle(center: northEndPoint, radius: 2)
 
         let tangent = northRotation.act(plane.north.normal)
 
-        LineSection(from: northEndPoint, to: northEndPoint + tangent.scaled(by: 30), plane: renderPlane)
+        LineSection(from: northEndPoint, to: northEndPoint + tangent.scaled(by: 30))
 
         Decoration(color: .cyan, lineStyle: .dashed()) {
             Arrow(from: plane.north.vertex0,
-                  to: plane.north.vertex0 + plane.north.normal * insideSetbacks[0],
-                  plane: renderPlane)
+                  to: plane.north.vertex0 + plane.north.normal * insideSetbacks[0])
 
             Arrow(from: plane.north.vertex0 + plane.north.normal * insideSetbacks[0],
-                  to: plane.north.vertex0 + plane.north.normal * insideSetbacks[0] + northRotation.act(plane.north.normal * insideSetbacks[0]),
-                  plane: renderPlane)
+                  to: plane.north.vertex0 + plane.north.normal * insideSetbacks[0] + northRotation.act(plane.north.normal * insideSetbacks[0]))
 
             Arrow(from: plane.north.vertex0 + plane.normal * state.thickness,
-                  to: plane.north.vertex0 + plane.normal * state.thickness + plane.north.normal * outsideSetbacks[0], plane: renderPlane)
+                  to: plane.north.vertex0 + plane.normal * state.thickness + plane.north.normal * outsideSetbacks[0])
 
             Arrow(from: plane.north.vertex0 + plane.normal * state.thickness + plane.north.normal * outsideSetbacks[0],
-                  to: plane.north.vertex0 + plane.normal * state.thickness + plane.north.normal * outsideSetbacks[0] + northRotation.act(plane.north.normal * outsideSetbacks[0]),
-                  plane: renderPlane)
+                  to: plane.north.vertex0 + plane.normal * state.thickness + plane.north.normal * outsideSetbacks[0] + northRotation.act(plane.north.normal * outsideSetbacks[0]))
         }
     }
 }

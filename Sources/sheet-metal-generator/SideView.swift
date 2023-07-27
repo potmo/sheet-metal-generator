@@ -14,19 +14,19 @@ struct SideView: ShapeMaker {
     @CanvasBuilder
     func shapes(from state: InputState) -> [DrawableShape] {
         Decoration(color: .cyan) {
-            Circle(center: [0, 0, 0], radius: 3, plane: renderPlane)
+            Circle(center: [0, 0, 0], radius: 3)
         }
 
         Decoration(color: .red) {
-            Arrow(vector: [3, 0, 0], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [3, 0, 0], origo: [0, 0, 0])
         }
 
         Decoration(color: .green) {
-            Arrow(vector: [0, 3, 0], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [0, 3, 0], origo: [0, 0, 0])
         }
 
         Decoration(color: .blue) {
-            Arrow(vector: [0, 0, 3], origo: [0, 0, 0], plane: renderPlane)
+            Arrow(vector: [0, 0, 3], origo: [0, 0, 0])
         }
 
         // draw outline
@@ -37,7 +37,7 @@ struct SideView: ShapeMaker {
                 Vector(state.size / 2, state.size / 2, 0),
                 Vector(-state.size / 2, state.size / 2, 0),
             ]
-            Polygon(vertices: outline, renderPlane: renderPlane)
+            Polygon(vertices: outline)
         }
 
         let northBendAngle = (90 + state.angleAreoundX).degreesToRadians
@@ -133,6 +133,6 @@ struct SideView: ShapeMaker {
             .withBendSouth(southBend)
             .withBendWest(westBend)
 
-        OrtographicSheet(sheet: bentSheet, renderPlane: renderPlane)
+        OrtographicSheet(sheet: bentSheet)
     }
 }

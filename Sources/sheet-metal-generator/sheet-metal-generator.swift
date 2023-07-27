@@ -39,15 +39,45 @@ struct HelloWorld: App {
                     DoubleSlider(label: "X-Angle", value: $state.angleAreoundX, range: -60.0 ... 60.0)
                     DoubleSlider(label: "Y-Angle", value: $state.angleAreoundY, range: -60.0 ... 60.0)
                 }
+
+                HStack(spacing: 0) {
+                    DoubleSlider(label: "Orbit", value: $state.cameraOrbit, range: 0.0 ... 360.0)
+                    DoubleSlider(label: "Tilt", value: $state.cameraTilt, range: -90.0 ... 90.0)
+                    DoubleSlider(label: "Side", value: $state.cameraDollySide, range: -100.0 ... 100.0)
+                    DoubleSlider(label: "Up", value: $state.cameraDollyUp, range: -100.0 ... 100.0)
+                }
             }
 
-            HStack {
-                // CanvasView(state: state, maker: FlatView())
-                CanvasView(state: state, maker: FlatSideView(renderPlane: .xy))
-                CanvasView(state: state, maker: FlatSideView(renderPlane: .xz))
-                CanvasView(state: state, maker: FlatSideView(renderPlane: .yz))
+            VStack {
+                HStack {
+                    // CanvasView(state: state, maker: FlatView())
+                    CanvasView(state: state, maker: FlatSideView(), renderTransform: AxisAlignedOrthographicTransform(plane: .xy))
+                    CanvasView(state: state, maker: FlatSideView(),
+                               renderTransform: PerspectiveTransform(camera: StateObjectCamera(state: state)))
+                }
+                HStack {
+                    CanvasView(state: state, maker: FlatSideView(), renderTransform: AxisAlignedOrthographicTransform(plane: .xz))
+                    CanvasView(state: state, maker: FlatSideView(), renderTransform: AxisAlignedOrthographicTransform(plane: .yz))
+                }
             }
         }
+    }
+}
+
+private struct StateObjectCamera: PerspectiveCamera {
+    private let state: InputState
+    init(state: InputState) {
+        self.state = state
+    }
+
+    var position: Vector {
+        return rotation.act(Vector(state.cameraDollySide, -120, state.cameraDollyUp))
+    }
+
+    var rotation: Quat {
+        let cameraOrbit = Quat(angle: state.cameraOrbit.degreesToRadians, axis: Vector(0, 0, 1))
+        let cameraTilt = Quat(angle: -state.cameraTilt.degreesToRadians, axis: cameraOrbit.act(Vector(1, 0, 0)))
+        return cameraOrbit
     }
 }
 
