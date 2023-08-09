@@ -83,13 +83,19 @@ struct FromSidesView: ShapeMaker {
         }
 
         Decoration(color: .gray) {
-            Circle(center: prescaledPlane.west.middle, radius: 2)
+            for edge in prescaledPlane.edges {
+                Circle(center: edge.middle, radius: 2)
+            }
+
+            Decoration(lineStyle: .dashed(phase: 2, lengths: [5, 1])) {
+                LineSection(from: prescaledPlane.north.middle, to: prescaledPlane.south.middle)
+                LineSection(from: prescaledPlane.west.middle, to: prescaledPlane.east.middle)
+            }
         }
 
         let scalingAmounts = bendAngles.map { bendAngle in
-            return Bend.outsideSetback(angle: bendAngle,
-                                       radius: state.bendRadius,
-                                       thickness: state.thickness)
+            return Bend.insideSetback(angle: bendAngle,
+                                       radius: state.bendRadius)
         }
         let scaledTopPlane = prescaledPlane
             .north.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[0])
@@ -110,7 +116,7 @@ struct FromSidesView: ShapeMaker {
 
         let bends = prescaledPlane.edges.enumerated().map { index, edge -> (bendAngle: Double,
                                                                             sideNormal: Vector,
-                                                                            outsideSetback: Double,
+                                                                            insideSetback: Double,
                                                                             drop: Vector,
                                                                             pivotPoint: Vector,
                                                                             edge: PlaneEdge,
@@ -118,20 +124,19 @@ struct FromSidesView: ShapeMaker {
                 let bendAngle = bendAngles[index]
                 let sideNormal = sideNormals[index]
 
-                let outsideSetback = Bend.outsideSetback(angle: bendAngle,
-                                                         radius: state.bendRadius,
-                                                         thickness: state.thickness)
+                let insideSetback = Bend.insideSetback(angle: bendAngle,
+                                                       radius: state.bendRadius)
 
                 // drop is perpendicular to edge
-                let drop = edge.middle + sideNormal.cross(edge.direction).scaled(by: outsideSetback)
-                let lever = sideNormal.scaled(by: -(state.bendRadius + state.thickness))
+                let drop = edge.middle + sideNormal.cross(edge.direction).scaled(by: insideSetback)
+                let lever = sideNormal.scaled(by: -(state.bendRadius))
                 let pivotPoint = drop + lever
                 let bendRotation = Quat(angle: bendAngle, axis: edge.direction)
                 let bendPoint = pivotPoint + bendRotation.act(lever.scaled(by: -1))
 
                 return (bendAngle: bendAngle,
                         sideNormal: sideNormal,
-                        outsideSetback: outsideSetback,
+                        insideSetback: insideSetback,
                         drop: drop,
                         pivotPoint: pivotPoint,
                         edge: edge,
@@ -140,15 +145,13 @@ struct FromSidesView: ShapeMaker {
 
         for bend in bends {
             let bendAngle = bend.bendAngle
-            let sideNormal = bend.sideNormal
-            let outsideSetback = bend.outsideSetback
             let drop = bend.drop
             let pivotPoint = bend.pivotPoint
             let edge = bend.edge
 
             Decoration(color: .gray, lineStyle: .dashed()) {
                 LineSection(from: edge.middle, to: drop)
-                LineSection(from: drop + edge.edge.scaled(by: -0.5), to: drop + edge.edge.scaled(by: 0.5))
+                LineSection(from: drop + edge.edge.scaled(by: -0.1), to: drop + edge.edge.scaled(by: 0.1))
                 LineSection(from: drop, to: pivotPoint)
             }
 
@@ -166,14 +169,16 @@ struct FromSidesView: ShapeMaker {
                       rotation: Quat(angle: bendAngle, axis: edge.direction))
             }
 
-            Decoration(color: .red) {
-                Orbit(pivot: pivotPoint,
-                      point: (drop - pivotPoint).normalized.scaled(by: state.bendRadius) + pivotPoint,
-                      rotation: Quat(angle: bendAngle, axis: edge.direction))
-            }
+            /*
+             Decoration(color: .red) {
+                 Orbit(pivot: pivotPoint,
+                       point: (drop - pivotPoint).normalized.scaled(by: state.bendRadius) + pivotPoint,
+                       rotation: Quat(angle: bendAngle, axis: edge.direction))
+             }
+              */
         }
 
-        Decoration(color: .green) {
+        Decoration(color: .green, lineStyle: .dashed()) {
             LineSection(from: bends[0].bendPoint, to: bends[2].bendPoint)
             LineSection(from: bends[1].bendPoint, to: bends[3].bendPoint)
         }
