@@ -29,10 +29,10 @@ struct FromSidesView: ShapeMaker {
 
         // draw outline
         let outline = [
-            Vector(-state.size / 2, state.size / 2, 0),
-            Vector(state.size / 2, state.size / 2, 0),
-            Vector(state.size / 2, -state.size / 2, 0),
-            Vector(-state.size / 2, -state.size / 2, 0),
+            Vector(-state.size / 2 + state.thickness, +state.size / 2 - state.thickness, 0),
+            Vector(+state.size / 2 - state.thickness, +state.size / 2 - state.thickness, 0),
+            Vector(+state.size / 2 - state.thickness, -state.size / 2 + state.thickness, 0),
+            Vector(-state.size / 2 + state.thickness, -state.size / 2 + state.thickness, 0),
         ]
         Decoration(color: .orange, lineStyle: .dashed()) {
             Polygon(vertices: outline)
@@ -55,7 +55,7 @@ struct FromSidesView: ShapeMaker {
         let localXAxis = Quat(angle: state.angleAroundY.degreesToRadians, axis: Vector(0, 1, 0)).act(Vector(1, 0, 0))
         let planeNormal = localXAxis.cross(localYAxis).normalized
 
-        let prescaledPlane = Plane(fitting: state.size, // offset in to make space for sheet thickness
+        let prescaledPlane = Plane(fitting: state.size - state.thickness * 2, // offset in to make space for sheet thickness
                                    normal: planeNormal)
 
         let midPlane = prescaledPlane.vertices.reduce(Vector(), +).scaled(by: 1 / 4)
@@ -95,16 +95,7 @@ struct FromSidesView: ShapeMaker {
 
         let scalingAmounts = bendAngles.map { bendAngle in
             return Bend.insideSetback(angle: bendAngle,
-                                       radius: state.bendRadius)
-        }
-        let scaledTopPlane = prescaledPlane
-            .north.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[0])
-            .east.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[1])
-            .south.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[2])
-            .west.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[3])
-
-        Decoration(color: .blue) {
-            Polygon(vertices: scaledTopPlane.vertices)
+                                      radius: state.bendRadius)
         }
 
         let sideNormals = [
@@ -114,13 +105,30 @@ struct FromSidesView: ShapeMaker {
             Vector(-1, 0, 0),
         ]
 
+        let scaledBottomPlane = prescaledPlane
+            .north.resizedAlongSides(by: -scalingAmounts[0])
+            .east.resizedAlongSides(by: -scalingAmounts[1])
+            .south.resizedAlongSides(by: -scalingAmounts[2])
+            .west.resizedAlongSides(by: -scalingAmounts[3])
+
+        let scaledTopPlane = scaledBottomPlane.offsetted(by: scaledBottomPlane.normal.scaled(by: state.thickness))
+
+        Decoration(color: .blue) {
+            Polygon(vertices: scaledBottomPlane.vertices)
+        }
+
+        Decoration(color: .red) {
+            Polygon(vertices: scaledTopPlane.vertices)
+        }
+
         let bends = prescaledPlane.edges.enumerated().map { index, edge -> (bendAngle: Double,
                                                                             sideNormal: Vector,
                                                                             insideSetback: Double,
                                                                             drop: Vector,
                                                                             pivotPoint: Vector,
                                                                             edge: PlaneEdge,
-                                                                            bendPoint: Vector) in
+                                                                            bendPoint: Vector,
+                                                                            bendRotation: Quat) in
                 let bendAngle = bendAngles[index]
                 let sideNormal = sideNormals[index]
 
@@ -128,10 +136,10 @@ struct FromSidesView: ShapeMaker {
                                                        radius: state.bendRadius)
 
                 // drop is perpendicular to edge
-                let drop = edge.middle + sideNormal.cross(edge.direction).scaled(by: insideSetback)
+                let drop = edge.middle + Vector(0, 0, -insideSetback)
                 let lever = sideNormal.scaled(by: -(state.bendRadius))
                 let pivotPoint = drop + lever
-                let bendRotation = Quat(angle: bendAngle, axis: edge.direction)
+                let bendRotation = Quat(angle: bendAngle, axis: sideNormal.cross(Vector(0, 0, 1)))
                 let bendPoint = pivotPoint + bendRotation.act(lever.scaled(by: -1))
 
                 return (bendAngle: bendAngle,
@@ -140,14 +148,16 @@ struct FromSidesView: ShapeMaker {
                         drop: drop,
                         pivotPoint: pivotPoint,
                         edge: edge,
-                        bendPoint: bendPoint)
+                        bendPoint: bendPoint,
+                        bendRotation: bendRotation)
         }
 
         for bend in bends {
-            let bendAngle = bend.bendAngle
             let drop = bend.drop
             let pivotPoint = bend.pivotPoint
             let edge = bend.edge
+            let bendRotation = bend.bendRotation
+            let sideNormal = bend.sideNormal
 
             Decoration(color: .gray, lineStyle: .dashed()) {
                 LineSection(from: edge.middle, to: drop)
@@ -159,23 +169,21 @@ struct FromSidesView: ShapeMaker {
                 Circle(center: pivotPoint, radius: 2)
             }
 
-            Decoration(color: .red) {
+            Decoration(color: .blue) {
                 Circle(center: bend.bendPoint, radius: 2)
             }
 
             Decoration(color: .blue) {
                 Orbit(pivot: pivotPoint,
                       point: drop,
-                      rotation: Quat(angle: bendAngle, axis: edge.direction))
+                      rotation: bendRotation)
             }
 
-            /*
-             Decoration(color: .red) {
-                 Orbit(pivot: pivotPoint,
-                       point: (drop - pivotPoint).normalized.scaled(by: state.bendRadius) + pivotPoint,
-                       rotation: Quat(angle: bendAngle, axis: edge.direction))
-             }
-              */
+            Decoration(color: .red) {
+                Orbit(pivot: pivotPoint,
+                      point: drop + sideNormal.scaled(by: state.thickness),
+                      rotation: bendRotation)
+            }
         }
 
         Decoration(color: .green, lineStyle: .dashed()) {

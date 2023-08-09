@@ -216,6 +216,8 @@ struct PlaneEdge {
             .offsetVertex(vertex1index, by: normal.scaled(by: amount))
     }
 
+
+
     func resizedAlongSides(byDistanceAlongNormal amount: Double) -> Plane {
         let previousIndex = (vertex0index - 1) %% 4
         let nextIndex = (vertex1index + 1) %% 4
@@ -225,6 +227,33 @@ struct PlaneEdge {
 
         let scaledVertex0 = plane.vertices[vertex0index] + normal.scaled(by: amount)
         let scaledVertex1 = plane.vertices[vertex1index] + normal.scaled(by: amount)
+
+        let firstSideScaled = scaledVertex0 - plane.vertices[previousIndex]
+        let secondSideScaled = scaledVertex1 - plane.vertices[nextIndex]
+
+        let firstSideProjected = firstSideScaled.projected(onto: firstSide)
+        let secondSideProjected = secondSideScaled.projected(onto: secondSide)
+
+        let newPosition0 = plane.vertices[previousIndex] + firstSideProjected
+        let newPosition1 = plane.vertices[nextIndex] + secondSideProjected
+
+        var newVertices = plane.vertices // copy
+
+        newVertices[vertex0index] = newPosition0
+        newVertices[vertex1index] = newPosition1
+
+        return Plane(vertices: newVertices)
+    }
+
+    func resizedAlongSides(by amount: Double) -> Plane {
+        let previousIndex = (vertex0index - 1) %% 4
+        let nextIndex = (vertex1index + 1) %% 4
+
+        let firstSide = plane.vertices[vertex0index] - plane.vertices[previousIndex]
+        let secondSide = plane.vertices[vertex1index] - plane.vertices[nextIndex]
+
+        let scaledVertex0 = plane.vertices[vertex0index] + firstSide.normalized.scaled(by: amount)
+        let scaledVertex1 = plane.vertices[vertex1index] + secondSide.normalized.scaled(by: amount)
 
         let firstSideScaled = scaledVertex0 - plane.vertices[previousIndex]
         let secondSideScaled = scaledVertex1 - plane.vertices[nextIndex]
@@ -263,9 +292,6 @@ struct PlaneEdge {
     func pushPulled(by amount: Double, in direction: Vector) -> Plane {
         let previousIndex = (vertex0index - 1) %% 4
         let nextIndex = (vertex1index + 1) %% 4
-
-        let firstSide = plane.vertices[vertex0index] - plane.vertices[previousIndex]
-        let secondSide = plane.vertices[vertex1index] - plane.vertices[nextIndex]
 
         let midPoint = plane.vertices[vertex0index] + (plane.vertices[vertex1index] - plane.vertices[vertex0index]).scaled(by: 0.5)
 
