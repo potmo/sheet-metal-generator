@@ -61,7 +61,12 @@ struct FromSidesView: ShapeMaker {
         let midPlane = prescaledPlane.vertices.reduce(Vector(), +).scaled(by: 1 / 4)
 
         Decoration(color: .purple) {
-            Arrow(vector: prescaledPlane.normal.scaled(by: 30), origo: midPlane)
+            Arrow(vector: prescaledPlane.normal.scaled(by: 10), origo: midPlane)
+        }
+
+        Decoration(color: .mint) {
+            Arrow(from: Vector(), to: localXAxis.scaled(by: 20))
+            Arrow(from: Vector(), to: localYAxis.scaled(by: 20))
         }
 
         let height = state.size
@@ -81,6 +86,21 @@ struct FromSidesView: ShapeMaker {
             Circle(center: prescaledPlane.west.middle, radius: 2)
         }
 
+        let scalingAmounts = bendAngles.map { bendAngle in
+            return Bend.outsideSetback(angle: bendAngle,
+                                       radius: state.bendRadius,
+                                       thickness: state.thickness)
+        }
+        let scaledTopPlane = prescaledPlane
+            .north.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[0])
+            .east.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[1])
+            .south.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[2])
+            .west.resizedAlongSides(byDistanceAlongNormal: -scalingAmounts[3])
+
+        Decoration(color: .blue) {
+            Polygon(vertices: scaledTopPlane.vertices)
+        }
+
         let sideNormals = [
             Vector(0, 1, 0),
             Vector(1, 0, 0),
@@ -88,17 +108,43 @@ struct FromSidesView: ShapeMaker {
             Vector(-1, 0, 0),
         ]
 
-        for (index, edge) in prescaledPlane.edges.enumerated() {
-            let bendAngle = bendAngles[index]
-            let sideNormal = sideNormals[index]
+        let bends = prescaledPlane.edges.enumerated().map { index, edge -> (bendAngle: Double,
+                                                                            sideNormal: Vector,
+                                                                            outsideSetback: Double,
+                                                                            drop: Vector,
+                                                                            pivotPoint: Vector,
+                                                                            edge: PlaneEdge,
+                                                                            bendPoint: Vector) in
+                let bendAngle = bendAngles[index]
+                let sideNormal = sideNormals[index]
 
-            let outsideSetback = Bend.outsideSetback(angle: bendAngle,
-                                                     radius: state.bendRadius,
-                                                     thickness: state.thickness)
+                let outsideSetback = Bend.outsideSetback(angle: bendAngle,
+                                                         radius: state.bendRadius,
+                                                         thickness: state.thickness)
 
-            // drop is perpendicular to edge
-            let drop = edge.middle + sideNormal.cross(edge.direction).scaled(by: outsideSetback)
-            let pivotPoint = drop + sideNormal.scaled(by: -(state.bendRadius + state.thickness))
+                // drop is perpendicular to edge
+                let drop = edge.middle + sideNormal.cross(edge.direction).scaled(by: outsideSetback)
+                let lever = sideNormal.scaled(by: -(state.bendRadius + state.thickness))
+                let pivotPoint = drop + lever
+                let bendRotation = Quat(angle: bendAngle, axis: edge.direction)
+                let bendPoint = pivotPoint + bendRotation.act(lever.scaled(by: -1))
+
+                return (bendAngle: bendAngle,
+                        sideNormal: sideNormal,
+                        outsideSetback: outsideSetback,
+                        drop: drop,
+                        pivotPoint: pivotPoint,
+                        edge: edge,
+                        bendPoint: bendPoint)
+        }
+
+        for bend in bends {
+            let bendAngle = bend.bendAngle
+            let sideNormal = bend.sideNormal
+            let outsideSetback = bend.outsideSetback
+            let drop = bend.drop
+            let pivotPoint = bend.pivotPoint
+            let edge = bend.edge
 
             Decoration(color: .gray, lineStyle: .dashed()) {
                 LineSection(from: edge.middle, to: drop)
@@ -108,6 +154,10 @@ struct FromSidesView: ShapeMaker {
 
             Decoration(color: .gray) {
                 Circle(center: pivotPoint, radius: 2)
+            }
+
+            Decoration(color: .red) {
+                Circle(center: bend.bendPoint, radius: 2)
             }
 
             Decoration(color: .blue) {
@@ -121,6 +171,11 @@ struct FromSidesView: ShapeMaker {
                       point: (drop - pivotPoint).normalized.scaled(by: state.bendRadius) + pivotPoint,
                       rotation: Quat(angle: bendAngle, axis: edge.direction))
             }
+        }
+
+        Decoration(color: .green) {
+            LineSection(from: bends[0].bendPoint, to: bends[2].bendPoint)
+            LineSection(from: bends[1].bendPoint, to: bends[3].bendPoint)
         }
     }
 }

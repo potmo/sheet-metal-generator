@@ -41,10 +41,10 @@ struct SheetMetalGenerator: App {
                 }
 
                 HStack(spacing: 0) {
-                    DoubleSlider(label: "Orbit", value: $state.cameraOrbit, range: -90.0 ... 90.0)
-                    DoubleSlider(label: "Tilt", value: $state.cameraTilt, range: -90.0 ... 90.0)
-                    DoubleSlider(label: "Side", value: $state.cameraDollySide, range: -100.0 ... 100.0)
-                    DoubleSlider(label: "Up", value: $state.cameraDollyUp, range: -100.0 ... 100.0)
+                    DoubleSlider(label: "Orbit", value: $state.cameraOrbit, range: -180.0 ... 180.0)
+                    DoubleSlider(label: "Tilt", value: $state.cameraTilt, range: -180.0 ... 180.0)
+                    // DoubleSlider(label: "Side", value: $state.cameraDollySide, range: -100.0 ... 100.0)
+                    // DoubleSlider(label: "Up", value: $state.cameraDollyUp, range: -100.0 ... 100.0)
                 }
             }
 
