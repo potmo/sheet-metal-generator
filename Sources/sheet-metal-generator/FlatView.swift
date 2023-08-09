@@ -22,18 +22,18 @@ struct FlatView: ShapeMaker {
         }
 
         let plane = Plane(fitting: state.size,
-                          rotatedAroundX: state.angleAreoundX,
-                          andY: state.angleAreoundY,
+                          rotatedAroundX: state.angleAroundX,
+                          andY: state.angleAroundY,
                           rotatedBackToXyPlane: true)
 
         Decoration(color: .red, lineStyle: .dashed()) {
             Polygon(vertices: plane.vertices)
         }
 
-        let northBendAngle = +state.angleAreoundX
-        let eastBendAngle = -state.angleAreoundY
-        let southBendAngle = -state.angleAreoundX
-        let westBendAngle = +state.angleAreoundY
+        let northBendAngle = +state.angleAroundX
+        let eastBendAngle = -state.angleAroundY
+        let southBendAngle = -state.angleAroundX
+        let westBendAngle = +state.angleAroundY
 
         let bendAngles = [
             northBendAngle,

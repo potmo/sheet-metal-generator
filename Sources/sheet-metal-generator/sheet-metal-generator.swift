@@ -36,8 +36,8 @@ struct SheetMetalGenerator: App {
                 }
 
                 HStack {
-                    DoubleSlider(label: "X-Angle", value: $state.angleAreoundX, range: -60.0 ... 60.0)
-                    DoubleSlider(label: "Y-Angle", value: $state.angleAreoundY, range: -60.0 ... 60.0)
+                    DoubleSlider(label: "X-Angle", value: $state.angleAroundX, range: -60.0 ... 60.0)
+                    DoubleSlider(label: "Y-Angle", value: $state.angleAroundY, range: -60.0 ... 60.0)
                 }
 
                 HStack(spacing: 0) {
@@ -54,7 +54,7 @@ struct SheetMetalGenerator: App {
                     // CanvasView(state: state, maker: FlatSideView(), renderTransform: AxisAlignedOrthographicTransform(plane: .xy))
 
                     // Top view
-                    CanvasView(state: state, maker: FlatSideView(),
+                    CanvasView(state: state, maker: FromSidesView(),
                                renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
                                                                                            rotation: Quat(angle: 0,
                                                                                                           axis: Vector(0, 0, 1)))))
@@ -63,21 +63,21 @@ struct SheetMetalGenerator: App {
                     let cameraTilt = Quat(angle: .pi / 2, axis: cameraOrbit.act(Vector(1, 0, 0)))
 
                     // Front view
-                    CanvasView(state: state, maker: FlatSideView(),
+                    CanvasView(state: state, maker: FromSidesView(),
                                renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
                                                                                            rotation: cameraTilt * cameraOrbit)))
                 }
                 HStack(spacing: 0) {
-                    // left view
                     let cameraOrbit = Quat(angle: -.pi / 2, axis: Vector(0, 0, 1))
                     let cameraTilt = Quat(angle: .pi / 2, axis: cameraOrbit.act(Vector(1, 0, 0)))
 
-                    // Front view
-                    CanvasView(state: state, maker: FlatSideView(),
+                    // Left view
+                    CanvasView(state: state, maker: FromSidesView(),
                                renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
                                                                                            rotation: cameraTilt * cameraOrbit)))
 
-                    CanvasView(state: state, maker: FlatSideView(),
+                    // orbit view
+                    CanvasView(state: state, maker: FromSidesView(),
                                renderTransform: OrthographicTransform(camera: StateObjectCamera(state: state)))
                 }
             }

@@ -7,8 +7,8 @@ class InputState: ObservableObject {
     @PublishedAppStorage("thickness") var thickness = 1.0
     @PublishedAppStorage("bend_radius") var bendRadius = 1.0
     @PublishedAppStorage("k_factor") var kFactor = 0.44
-    @PublishedAppStorage("angle_around_x") var angleAreoundX = 0.0
-    @PublishedAppStorage("angle_around_y") var angleAreoundY = 0.0
+    @PublishedAppStorage("angle_around_x") var angleAroundX = 0.0
+    @PublishedAppStorage("angle_around_y") var angleAroundY = 0.0
 
     @PublishedAppStorage("cameraOrbit") var cameraOrbit = 0.0
     @PublishedAppStorage("cameraTilt") var cameraTilt = 0.0

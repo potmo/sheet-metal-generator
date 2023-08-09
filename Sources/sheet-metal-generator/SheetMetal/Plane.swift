@@ -41,17 +41,9 @@ struct Plane {
         return Sheet(extrudendFrom: self, thickness: thickness)
     }
 
-    /// Construct a plane where the square corners is projected onto a tilted plane that is then rotated back into the origin plane
     init(fitting size: Double,
-         rotatedAroundX angleAroundX: Double,
-         andY angleAroundY: Double,
+         normal planeNormal: Vector,
          rotatedBackToXyPlane: Bool = false) {
-        let xRads = angleAroundX.degreesToRadians
-        let yRads = angleAroundY.degreesToRadians
-        let xRotation = Quat(angle: xRads, axis: Vector(x: 1, y: 0, z: 0))
-        let yRotation = Quat(angle: yRads, axis: Vector(x: 0, y: 1, z: 0))
-        let rotation = yRotation * xRotation
-
         let upperLeft = Vector(x: -size / 2, y: size / 2, z: size * 5)
         let upperRight = Vector(x: size / 2, y: size / 2, z: size * 5)
         let lowerRight = Vector(x: size / 2, y: -size / 2, z: size * 5)
@@ -59,7 +51,6 @@ struct Plane {
 
         let down = Vector(x: 0, y: 0, z: -1)
 
-        let planeNormal = rotation.act(Vector(x: 0, y: 0, z: 1))
         let planeOrigin = Vector(x: 0, y: 0, z: 0)
 
         guard let upperLeftHit = down.intersectPlane(normal: planeNormal, planeOrigin: planeOrigin, rayOrigin: upperLeft) else {
@@ -77,10 +68,11 @@ struct Plane {
 
         // rotate the plane back into the xy plane
         if rotatedBackToXyPlane {
-            let upperLeftResult = rotation.inverse.act(upperLeftHit - planeOrigin)
-            let upperRightResult = rotation.inverse.act(upperRightHit - planeOrigin)
-            let lowerRightResult = rotation.inverse.act(lowerRightHit - planeOrigin)
-            let lowerLeftResult = rotation.inverse.act(lowerLeftHit - planeOrigin)
+            let rotation = Quat(from: planeNormal, to: Vector(0, 0, 1))
+            let upperLeftResult = rotation.act(upperLeftHit - planeOrigin)
+            let upperRightResult = rotation.act(upperRightHit - planeOrigin)
+            let lowerRightResult = rotation.act(lowerRightHit - planeOrigin)
+            let lowerLeftResult = rotation.act(lowerLeftHit - planeOrigin)
 
             self.init(vertex0: upperLeftResult.with(z: 0),
                       vertex1: upperRightResult.with(z: 0),
@@ -92,6 +84,21 @@ struct Plane {
                       vertex2: lowerRightHit - planeOrigin,
                       vertex3: lowerLeftHit - planeOrigin)
         }
+    }
+
+    /// Construct a plane where the square corners is projected onto a tilted plane that is then rotated back into the origin plane
+    init(fitting size: Double,
+         rotatedAroundX angleAroundX: Double,
+         andY angleAroundY: Double,
+         rotatedBackToXyPlane: Bool = false) {
+        let xRads = angleAroundX.degreesToRadians
+        let yRads = angleAroundY.degreesToRadians
+        let xRotation = Quat(angle: xRads, axis: Vector(x: 1, y: 0, z: 0))
+        let yRotation = Quat(angle: yRads, axis: Vector(x: 0, y: 1, z: 0))
+        let rotation = yRotation * xRotation
+        let planeNormal = rotation.act(Vector(x: 0, y: 0, z: 1))
+
+        self.init(fitting: size, normal: planeNormal, rotatedBackToXyPlane: rotatedBackToXyPlane)
     }
 
     func offsetted(by offsetVector: Vector) -> Plane {
@@ -153,6 +160,10 @@ struct Plane {
                          vertex1index: 0)
     }
 
+    var edges: [PlaneEdge] {
+        return [north, east, south, west]
+    }
+
     func offsetVertex(_ vertex: Int, by vector: Vector) -> Plane {
         var newVertices = vertices // copy
         newVertices[vertex] += vector
@@ -188,7 +199,15 @@ struct PlaneEdge {
     }
 
     var direction: Vector {
-        return (vertex1 - vertex0).normalized
+        return edge.normalized
+    }
+
+    var edge: Vector {
+        return vertex1 - vertex0
+    }
+
+    var middle: Vector {
+        return (vertex1 - vertex0).scaled(by: 0.5) + vertex0
     }
 
     func resizedAlongNormal(by amount: Double) -> Plane {

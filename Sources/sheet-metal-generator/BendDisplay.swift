@@ -13,10 +13,10 @@ struct BendDisplay: ShapeMaker {
     func shapes(from state: InputState) -> [DrawableShape] {
         let start = Vector(0, 0, 0)
 
-        let topVector = Vector(x: state.size, y: 0, z: 0).rotated(by: state.angleAreoundY.degreesToRadians, around: .z)
+        let topVector = Vector(x: state.size, y: 0, z: 0).rotated(by: state.angleAroundY.degreesToRadians, around: .z)
         let thicknessVector = topVector.xyPerp.normalized.scaled(by: state.thickness)
 
-        let downVector = topVector.rotated(by: (90 - state.angleAreoundY).degreesToRadians, around: .z)
+        let downVector = topVector.rotated(by: (90 - state.angleAroundY).degreesToRadians, around: .z)
         let downThicknessVector = downVector.xyPerp.normalized.scaled(by: state.thickness)
 
         let centerOfRotation = topVector + -topVector.xyPerp.normalized * state.bendRadius
@@ -28,12 +28,12 @@ struct BendDisplay: ShapeMaker {
 
         Arc(center: centerOfRotation,
             radius: state.bendRadius,
-            startAngle: (state.angleAreoundY - 90).degreesToRadians,
+            startAngle: (state.angleAroundY - 90).degreesToRadians,
             endAngle: 0)
 
         Arc(center: centerOfRotation,
             radius: state.bendRadius + state.thickness,
-            startAngle: (state.angleAreoundY - 90).degreesToRadians,
+            startAngle: (state.angleAroundY - 90).degreesToRadians,
             endAngle: 0)
 
         let neutralAxisRadius = state.bendRadius + state.thickness * state.kFactor
@@ -41,12 +41,12 @@ struct BendDisplay: ShapeMaker {
         Decoration(color: .green, lineStyle: .dashed()) {
             Arc(center: centerOfRotation,
                 radius: neutralAxisRadius,
-                startAngle: (state.angleAreoundY - 90).degreesToRadians,
+                startAngle: (state.angleAroundY - 90).degreesToRadians,
                 endAngle: 0)
         }
 
         let firstBendLine = start + topVector
-        let secondBendLine = firstBendLine.rotated(by: (90 - state.angleAreoundY).degreesToRadians, around: .z, pivot: centerOfRotation)
+        let secondBendLine = firstBendLine.rotated(by: (90 - state.angleAroundY).degreesToRadians, around: .z, pivot: centerOfRotation)
 
         Decoration(color: .black.opacity(0.5), lineStyle: .dashed(phase: 2, lengths: [2, 2])) {
             LineSection(from: firstBendLine, to: firstBendLine + thicknessVector)
@@ -62,13 +62,13 @@ struct BendDisplay: ShapeMaker {
             LineSection(from: centerOfRotation, to: secondBendLine)
         }
 
-        let setBack = outsideSetback(angle: (90 - state.angleAreoundY).degreesToRadians,
+        let setBack = outsideSetback(angle: (90 - state.angleAroundY).degreesToRadians,
                                      insideRadius: state.bendRadius,
                                      materialThickness: state.thickness)
 
         let setBackVector = topVector.normalized.scaled(by: setBack)
 
-        let setBackDownVector = topVector.normalized.scaled(by: setBack).rotated(by: (90 - state.angleAreoundY).degreesToRadians,
+        let setBackDownVector = topVector.normalized.scaled(by: setBack).rotated(by: (90 - state.angleAroundY).degreesToRadians,
                                                                                  around: .z)
 
         let apex = start + topVector + thicknessVector + setBackVector

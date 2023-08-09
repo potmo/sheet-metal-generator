@@ -40,15 +40,15 @@ struct SideView: ShapeMaker {
             Polygon(vertices: outline)
         }
 
-        let northBendAngle = (90 + state.angleAreoundX).degreesToRadians
-        let eastBendAngle = (90 - state.angleAreoundY).degreesToRadians
-        let southBendAngle = (90 - state.angleAreoundX).degreesToRadians
-        let westBendAngle = (90 + state.angleAreoundY).degreesToRadians
+        let northBendAngle = (90 + state.angleAroundX).degreesToRadians
+        let eastBendAngle = (90 - state.angleAroundY).degreesToRadians
+        let southBendAngle = (90 - state.angleAroundX).degreesToRadians
+        let westBendAngle = (90 + state.angleAroundY).degreesToRadians
 
         // offset in to make space for sheet thickness
         let plane = Plane(fitting: state.size - state.thickness * 2,
-                          rotatedAroundX: state.angleAreoundX,
-                          andY: state.angleAreoundY)
+                          rotatedAroundX: state.angleAroundX,
+                          andY: state.angleAroundY)
         // .offsetted(by: [0, 0, -state.thickness]) // bring top face down to zero
         //   .offsetted(by: [0, 0, state.height]) // bring height up so it stands on zero
 

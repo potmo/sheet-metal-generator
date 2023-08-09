@@ -38,38 +38,53 @@ struct FlatSideView: ShapeMaker {
             Polygon(vertices: outline)
         }
 
-        let northBendAngle = +state.angleAreoundX
-        let eastBendAngle = -state.angleAreoundY
-        let southBendAngle = -state.angleAreoundX
-        let westBendAngle = +state.angleAreoundY
+        let northBendAngle = +state.angleAroundX
+        let eastBendAngle = -state.angleAroundY
+        let southBendAngle = -state.angleAroundX
+        let westBendAngle = +state.angleAroundY
 
         let bendAngles = [
-            northBendAngle,
-            eastBendAngle,
-            southBendAngle,
-            westBendAngle,
+            northBendAngle + 90,
+            eastBendAngle + 90,
+            southBendAngle + 90,
+            westBendAngle + 90,
         ]
         .map(\.degreesToRadians)
 
+        let localYAxis = Quat(angle: state.angleAroundX.degreesToRadians, axis: Vector(1, 0, 0)).act(Vector(0, 1, 0))
+        let localXAxis = Quat(angle: state.angleAroundY.degreesToRadians, axis: Vector(0, 1, 0)).act(Vector(1, 0, 0))
+        let planeNormal = localXAxis.cross(localYAxis).normalized
+
         let prescaledPlane = Plane(fitting: state.size, // offset in to make space for sheet thickness
-                                   rotatedAroundX: state.angleAreoundX,
-                                   andY: state.angleAreoundY)
+                                   normal: planeNormal)
 
         Decoration(color: .green, lineStyle: .dashed()) {
             Polygon(vertices: prescaledPlane.vertices)
+        }
+
+        let midPlane = prescaledPlane.vertices.reduce(Vector(), +).scaled(by: 1 / 4)
+
+        Decoration(color: .purple) {
+            Arrow(vector: prescaledPlane.normal.scaled(by: 30), origo: midPlane)
+        }
+
+        Decoration(color: .mint) {
+            Arrow(vector: planeNormal.scaled(by: 30), origo: midPlane)
         }
 
         // since the edges gets distorted because of the compound angle we have to correct them so that
         // the bend ends up being 90° around the bend line
         // this should be the xAngle and yAngle but isnt
         // we are going for a bend that ends up pointing straight down so lets just meshure what that would be
-        var computedAngles = [prescaledPlane.north, prescaledPlane.east, prescaledPlane.south, prescaledPlane.west].map { side -> Double in
-            // let horizontalVector = side.normal//.with(z: 0).normalized
-            return -side.normal.angleBetween(and: Vector(0, 0, -1), around: side.direction)
-        }
+        /*
+         var computedAngles = [prescaledPlane.north, prescaledPlane.east, prescaledPlane.south, prescaledPlane.west].map { side -> Double in
+             // let horizontalVector = side.normal//.with(z: 0).normalized
+             return -side.normal.angleBetween(and: Vector(0, 0, -1), around: side.direction)
+         }
+          */
         // .enumerated().map { i, _ in .pi / 2 + bendAngles[i] } // replace with original angles
 
-        let bendAllowances = computedAngles.map { angle in
+        let bendAllowances = bendAngles.map { angle in
 
             return Bend.bendAllowance(angle: angle,
                                       insideRadius: state.bendRadius,
@@ -77,19 +92,19 @@ struct FlatSideView: ShapeMaker {
                                       materialThickness: state.thickness)
         }
 
-        let outsideSetbacks = computedAngles.map { angle in
+        let outsideSetbacks = bendAngles.map { angle in
             return Bend.outsideSetback(angle: angle, radius: state.bendRadius, thickness: state.thickness)
         }
 
-        let insideSetbacks = computedAngles.map { angle in
+        let insideSetbacks = bendAngles.map { angle in
             return Bend.insideSetback(angle: angle, radius: state.bendRadius)
         }
 
         let plane = prescaledPlane
-            .north.resizedAlongSides(byDistanceAlongNormal: -insideSetbacks[0])
-            .east.resizedAlongSides(byDistanceAlongNormal: -insideSetbacks[1])
-            .south.resizedAlongSides(byDistanceAlongNormal: -insideSetbacks[2])
-            .west.resizedAlongSides(byDistanceAlongNormal: -insideSetbacks[3])
+            .north.resizedAlongSides(byDistanceAlongNormal: -outsideSetbacks[0])
+            .east.resizedAlongSides(byDistanceAlongNormal: -outsideSetbacks[1])
+            .south.resizedAlongSides(byDistanceAlongNormal: -outsideSetbacks[2])
+            .west.resizedAlongSides(byDistanceAlongNormal: -outsideSetbacks[3])
 
         Decoration(color: .green) {
             Arrow(vector: plane.north.normal.scaled(by: 10.0), origo: plane.north.vertex0)
@@ -113,7 +128,7 @@ struct FlatSideView: ShapeMaker {
         let northRotationPoint = plane.north.vertex0 + plane.normal * -state.bendRadius
         let northRotationAxis = -plane.north.direction
 
-        let northRotation = Quat(angle: computedAngles[0], axis: northRotationAxis)
+        let northRotation = Quat(angle: bendAngles[0], axis: northRotationAxis)
 
         Decoration(color: .red) {
             Orbit(pivot: northRotationPoint,
@@ -134,7 +149,7 @@ struct FlatSideView: ShapeMaker {
         }
 
         let northEndPoint = northRotationPoint + northRotation.act(plane.north.vertex0 - northRotationPoint)
-        Circle(center: northEndPoint, radius: 2)
+        Circle(center: northEndPoint, radius: 20)
 
         let tangent = northRotation.act(plane.north.normal)
 
