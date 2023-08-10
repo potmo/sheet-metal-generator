@@ -71,13 +71,14 @@ struct FromSidesView: ShapeMaker {
 
         let height = state.size
         let bottomOutline = outline.map { vertice in vertice + Vector(0, 0, -height) }
+        let bottomOutlinePlane = Plane(vertices: bottomOutline)
 
-        Decoration(color: .gray, lineStyle: .dashed()) {
+        Decoration(color: .gray, lineStyle: .regularDash) {
             Polygon(vertices: prescaledPlane.vertices)
 
-            Polygon(vertices: bottomOutline)
+            Polygon(vertices: bottomOutlinePlane.vertices)
 
-            zip(prescaledPlane.vertices, bottomOutline).map { top, bottom in
+            zip(prescaledPlane.vertices, bottomOutlinePlane.vertices).map { top, bottom in
                 LineSection(from: top, to: bottom)
             }
         }
@@ -111,7 +112,7 @@ struct FromSidesView: ShapeMaker {
             .south.resizedAlongSides(by: -scalingAmounts[2])
             .west.resizedAlongSides(by: -scalingAmounts[3])
 
-        Decoration(color: .blue, lineStyle: .dashed(phase: 0, lengths: [5, 2])) {
+        Decoration(color: .blue, lineStyle: .bendDash) {
             Polygon(vertices: scaledBottomPlane.vertices)
         }
 
@@ -119,6 +120,8 @@ struct FromSidesView: ShapeMaker {
             let bendAngle = bendAngles[index]
             let sideNormal = sideNormals[index]
             let insideSetback = scalingAmounts[index]
+            let scaledEdge = scaledBottomPlane.edges[index]
+            let bottomEdge = bottomOutlinePlane.edges[index]
 
             // drop is perpendicular to edge
             let drop = edge.middle + Vector(0, 0, -insideSetback)
@@ -127,7 +130,16 @@ struct FromSidesView: ShapeMaker {
             let bendRotation = Quat(angle: bendAngle, axis: sideNormal.cross(Vector(0, 0, 1)))
             let bendPoint = pivotPoint + bendRotation.act(lever.scaled(by: -1))
 
-            Decoration(color: .gray, lineStyle: .dashed()) {
+            let dropRelativeToBendPoint = drop - bendPoint
+            let pivotPointRelativeToBendPoint = pivotPoint - bendPoint
+
+            let firstScaledCorner = scaledEdge.middle + scaledEdge.edge.scaled(by: -0.5)
+            let secondScaledCorner = scaledEdge.middle + scaledEdge.edge.scaled(by: 0.5)
+
+            let firstFullCorner = drop + edge.edge.scaled(by: -0.5)
+            let secondFullCorner = drop + edge.edge.scaled(by: 0.5)
+
+            Decoration(color: .gray, lineStyle: .regularDash) {
                 LineSection(from: edge.middle, to: drop)
                 LineSection(from: drop + edge.edge.scaled(by: -0.1), to: drop + edge.edge.scaled(by: 0.1))
                 LineSection(from: drop, to: pivotPoint)
@@ -135,16 +147,30 @@ struct FromSidesView: ShapeMaker {
 
             Decoration(color: .gray) {
                 Circle(center: pivotPoint, radius: 2)
-            }
-
-            Decoration(color: .blue) {
                 Circle(center: bendPoint, radius: 2)
             }
 
             Decoration(color: .blue) {
-                Orbit(pivot: pivotPoint,
-                      point: drop,
+                Orbit(pivot: firstScaledCorner + pivotPointRelativeToBendPoint,
+                      point: firstScaledCorner + dropRelativeToBendPoint,
                       rotation: bendRotation)
+
+                Orbit(pivot: secondScaledCorner + pivotPointRelativeToBendPoint,
+                      point: secondScaledCorner + dropRelativeToBendPoint,
+                      rotation: bendRotation)
+            }
+
+            Decoration(color: .blue, lineStyle: .bendDash) {
+                LineSection(from: firstScaledCorner + dropRelativeToBendPoint, to: secondScaledCorner + dropRelativeToBendPoint)
+            }
+
+            Decoration(color: .blue) {
+                LineSection(from: firstFullCorner, to: firstScaledCorner + dropRelativeToBendPoint)
+                LineSection(from: secondScaledCorner + dropRelativeToBendPoint, to: secondFullCorner)
+
+                LineSection(from: firstFullCorner, to: bottomEdge.vertex0)
+                LineSection(from: secondFullCorner, to: bottomEdge.vertex1)
+                LineSection(from: bottomEdge.vertex0, to: bottomEdge.vertex1)
             }
         }
     }
