@@ -111,53 +111,21 @@ struct FromSidesView: ShapeMaker {
             .south.resizedAlongSides(by: -scalingAmounts[2])
             .west.resizedAlongSides(by: -scalingAmounts[3])
 
-        let scaledTopPlane = scaledBottomPlane.offsetted(by: scaledBottomPlane.normal.scaled(by: state.thickness))
-
-        Decoration(color: .blue) {
+        Decoration(color: .blue, lineStyle: .dashed(phase: 0, lengths: [5, 2])) {
             Polygon(vertices: scaledBottomPlane.vertices)
         }
 
-        Decoration(color: .red) {
-            Polygon(vertices: scaledTopPlane.vertices)
-        }
+        for (index, edge) in prescaledPlane.edges.enumerated() {
+            let bendAngle = bendAngles[index]
+            let sideNormal = sideNormals[index]
+            let insideSetback = scalingAmounts[index]
 
-        let bends = prescaledPlane.edges.enumerated().map { index, edge -> (bendAngle: Double,
-                                                                            sideNormal: Vector,
-                                                                            insideSetback: Double,
-                                                                            drop: Vector,
-                                                                            pivotPoint: Vector,
-                                                                            edge: PlaneEdge,
-                                                                            bendPoint: Vector,
-                                                                            bendRotation: Quat) in
-                let bendAngle = bendAngles[index]
-                let sideNormal = sideNormals[index]
-
-                let insideSetback = Bend.insideSetback(angle: bendAngle,
-                                                       radius: state.bendRadius)
-
-                // drop is perpendicular to edge
-                let drop = edge.middle + Vector(0, 0, -insideSetback)
-                let lever = sideNormal.scaled(by: -(state.bendRadius))
-                let pivotPoint = drop + lever
-                let bendRotation = Quat(angle: bendAngle, axis: sideNormal.cross(Vector(0, 0, 1)))
-                let bendPoint = pivotPoint + bendRotation.act(lever.scaled(by: -1))
-
-                return (bendAngle: bendAngle,
-                        sideNormal: sideNormal,
-                        insideSetback: insideSetback,
-                        drop: drop,
-                        pivotPoint: pivotPoint,
-                        edge: edge,
-                        bendPoint: bendPoint,
-                        bendRotation: bendRotation)
-        }
-
-        for bend in bends {
-            let drop = bend.drop
-            let pivotPoint = bend.pivotPoint
-            let edge = bend.edge
-            let bendRotation = bend.bendRotation
-            let sideNormal = bend.sideNormal
+            // drop is perpendicular to edge
+            let drop = edge.middle + Vector(0, 0, -insideSetback)
+            let lever = sideNormal.scaled(by: -(state.bendRadius))
+            let pivotPoint = drop + lever
+            let bendRotation = Quat(angle: bendAngle, axis: sideNormal.cross(Vector(0, 0, 1)))
+            let bendPoint = pivotPoint + bendRotation.act(lever.scaled(by: -1))
 
             Decoration(color: .gray, lineStyle: .dashed()) {
                 LineSection(from: edge.middle, to: drop)
@@ -170,7 +138,7 @@ struct FromSidesView: ShapeMaker {
             }
 
             Decoration(color: .blue) {
-                Circle(center: bend.bendPoint, radius: 2)
+                Circle(center: bendPoint, radius: 2)
             }
 
             Decoration(color: .blue) {
@@ -178,17 +146,6 @@ struct FromSidesView: ShapeMaker {
                       point: drop,
                       rotation: bendRotation)
             }
-
-            Decoration(color: .red) {
-                Orbit(pivot: pivotPoint,
-                      point: drop + sideNormal.scaled(by: state.thickness),
-                      rotation: bendRotation)
-            }
-        }
-
-        Decoration(color: .green, lineStyle: .dashed()) {
-            LineSection(from: bends[0].bendPoint, to: bends[2].bendPoint)
-            LineSection(from: bends[1].bendPoint, to: bends[3].bendPoint)
         }
     }
 }
