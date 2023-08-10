@@ -51,6 +51,14 @@ struct FromSidesView: ShapeMaker {
         ]
         .map(\.degreesToRadians)
 
+        let oppositeRotationAngles = [
+            eastBendAngle,
+            southBendAngle,
+            westBendAngle,
+            northBendAngle,
+        ]
+        .map(\.degreesToRadians)
+
         let localYAxis = Quat(angle: state.angleAroundX.degreesToRadians, axis: Vector(1, 0, 0)).act(Vector(0, 1, 0))
         let localXAxis = Quat(angle: state.angleAroundY.degreesToRadians, axis: Vector(0, 1, 0)).act(Vector(1, 0, 0))
         let planeNormal = localXAxis.cross(localYAxis).normalized
@@ -116,12 +124,23 @@ struct FromSidesView: ShapeMaker {
             Polygon(vertices: scaledBottomPlane.vertices)
         }
 
+        let backRotation = Quat(from: scaledBottomPlane.normal, to: Vector(0, 0, 1))
+        let backRotatedVertices = scaledBottomPlane.vertices.map { vertex in
+            return backRotation.act(vertex) + Vector(state.size * 3, 0, 0)
+        }
+        let backRotatedPlane = Plane(vertices: backRotatedVertices)
+        Decoration(color: .red, lineStyle: .bendDash) {
+            Polygon(vertices: backRotatedPlane.vertices, closed: true)
+        }
+
         for (index, edge) in prescaledPlane.edges.enumerated() {
             let bendAngle = bendAngles[index]
             let sideNormal = sideNormals[index]
             let insideSetback = scalingAmounts[index]
             let scaledEdge = scaledBottomPlane.edges[index]
             let bottomEdge = bottomOutlinePlane.edges[index]
+            let backRotatedEdge = backRotatedPlane.edges[index]
+            let oppositeRotationAngle = oppositeRotationAngles[index]
 
             // drop is perpendicular to edge
             let drop = edge.middle + Vector(0, 0, -insideSetback)
@@ -138,6 +157,8 @@ struct FromSidesView: ShapeMaker {
 
             let firstFullCorner = drop + edge.edge.scaled(by: -0.5)
             let secondFullCorner = drop + edge.edge.scaled(by: 0.5)
+
+            let bendArcLength = bendAngle * state.bendRadius
 
             Decoration(color: .gray, lineStyle: .regularDash) {
                 LineSection(from: edge.middle, to: drop)
@@ -171,6 +192,46 @@ struct FromSidesView: ShapeMaker {
                 LineSection(from: firstFullCorner, to: bottomEdge.vertex0)
                 LineSection(from: secondFullCorner, to: bottomEdge.vertex1)
                 LineSection(from: bottomEdge.vertex0, to: bottomEdge.vertex1)
+            }
+
+            Decoration(color: .red) {
+                let bendExtension = backRotatedEdge.normal.scaled(by: bendArcLength)
+                LineSection(from: backRotatedEdge.vertex0, to: backRotatedEdge.vertex0 + bendExtension)
+                LineSection(from: backRotatedEdge.vertex1, to: backRotatedEdge.vertex1 + bendExtension)
+
+                let firstEdgeExtension = (firstScaledCorner - firstFullCorner + dropRelativeToBendPoint).length
+                let secondEdgeExtension = (secondScaledCorner - secondFullCorner + dropRelativeToBendPoint).length
+
+                let firstLegLength = ((firstFullCorner + dropRelativeToBendPoint) - bottomEdge.vertex0).length
+                let secondLegLength = ((secondFullCorner + dropRelativeToBendPoint) - bottomEdge.vertex1).length
+
+                let firstFullFlatCorner = backRotatedEdge.vertex0 + bendExtension + backRotatedEdge.direction.scaled(by: -firstEdgeExtension)
+
+                let secondFullFlatCorner = backRotatedEdge.vertex1 + bendExtension + backRotatedEdge.direction.scaled(by: secondEdgeExtension)
+
+                let legRotation = Quat(angle: oppositeRotationAngle, axis: Vector(0, 0, 1))
+                let firstLeg = legRotation.act(backRotatedEdge.normal.scaled(by: firstLegLength))
+                let secondLeg = legRotation.act(backRotatedEdge.normal.scaled(by: secondLegLength))
+
+                Decoration(lineStyle: .bendDash) {
+                    LineSection(from: backRotatedEdge.vertex0 + bendExtension,
+                                to: backRotatedEdge.vertex1 + bendExtension)
+                }
+
+                LineSection(from: backRotatedEdge.vertex0 + bendExtension,
+                            to: firstFullFlatCorner)
+
+                LineSection(from: backRotatedEdge.vertex1 + bendExtension,
+                            to: secondFullFlatCorner)
+
+                LineSection(from: firstFullFlatCorner,
+                            to: firstFullFlatCorner + firstLeg)
+
+                LineSection(from: secondFullFlatCorner,
+                            to: secondFullFlatCorner + secondLeg)
+
+                LineSection(from: firstFullFlatCorner + firstLeg,
+                            to: secondFullFlatCorner + secondLeg)
             }
         }
     }
