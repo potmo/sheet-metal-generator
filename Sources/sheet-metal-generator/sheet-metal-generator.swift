@@ -25,6 +25,23 @@ struct SheetMetalGenerator: App {
         WindowGroup {
             VStack {
                 HStack {
+                    Button("SVG") {
+                        let svgTarget = SVGRenderTarget()
+                        let maker = FromSidesView()
+                        let staticCamera = StaticCamera(position: Vector(0, 0, 200),
+                                                        rotation: Quat(angle: 0,
+                                                                       axis: Vector(0, 0, 1)))
+
+                        let renderTransform = OrthographicTransform(camera: staticCamera)
+                        let context = RenderContext(canvasSize: Vector2D(1000, 1000),
+                                                    renderTarget: svgTarget,
+                                                    transform2d: CGAffineTransform(scaleX: 1 / (25.4 / 72), y: 1 / (25.4 / 72)), // pixels to millimeters
+                                                    transform3d: renderTransform)
+                        let shapes = maker.shapes(from: state)
+                        shapes.forEach { $0.draw(in: context) }
+
+                        print(svgTarget.svg)
+                    }
                     DoubleSlider(label: "Thickness", value: $state.thickness, range: 0.0 ... 5.0)
                     DoubleSlider(label: "Size", value: $state.size, range: 0.0 ... 150.0)
                     DoubleSlider(label: "Height", value: $state.height, range: 0.0 ... 150.0)
@@ -54,7 +71,8 @@ struct SheetMetalGenerator: App {
                     // CanvasView(state: state, maker: FlatSideView(), renderTransform: AxisAlignedOrthographicTransform(plane: .xy))
 
                     // Top view
-                    CanvasView(state: state, maker: FromSidesView(),
+                    CanvasView(state: state,
+                               maker: FromSidesView(),
                                renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
                                                                                            rotation: Quat(angle: 0,
                                                                                                           axis: Vector(0, 0, 1)))))
