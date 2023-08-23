@@ -30,15 +30,30 @@ struct FromSidesView: ShapeMaker {
         }
 
         // draw outline
-        let outline = [
-            Vector(-state.size / 2 + state.thickness, +state.size / 2 - state.thickness, 0),
-            Vector(+state.size / 2 - state.thickness, +state.size / 2 - state.thickness, 0),
-            Vector(+state.size / 2 - state.thickness, -state.size / 2 + state.thickness, 0),
-            Vector(-state.size / 2 + state.thickness, -state.size / 2 + state.thickness, 0),
+        let innerSize = state.size - state.thickness
+        let innerOutline = [
+            Vector(-innerSize / 2, +innerSize / 2, 0),
+            Vector(+innerSize / 2, +innerSize / 2, 0),
+            Vector(+innerSize / 2, -innerSize / 2, 0),
+            Vector(-innerSize / 2, -innerSize / 2, 0),
         ]
+
+
+        let outsideOutline = [
+            Vector(-state.size / 2, +state.size / 2, 0),
+            Vector(+state.size / 2, +state.size / 2, 0),
+            Vector(+state.size / 2, -state.size / 2, 0),
+            Vector(-state.size / 2, -state.size / 2, 0),
+        ]
+
+        /*
         Decoration(color: .orange, lineStyle: .dashed()) {
-            Polygon(vertices: outline)
+            Polygon(vertices: innerOutline)
         }
+        Decoration(color: .indigo, lineStyle: .dashed()) {
+            Polygon(vertices: outsideOutline)
+        }
+         */
 
         let northBendAngle = +state.angleAroundX
         let eastBendAngle = -state.angleAroundY
@@ -73,16 +88,18 @@ struct FromSidesView: ShapeMaker {
         Decoration(color: .purple) {
             Arrow(vector: prescaledPlane.normal.scaled(by: 10), origo: midPlane)
         }
-
+/*
         Decoration(color: .mint) {
             Arrow(from: Vector(), to: localXAxis.scaled(by: 20))
             Arrow(from: Vector(), to: localYAxis.scaled(by: 20))
         }
+        */
 
         let height = state.size
-        let bottomOutline = outline.map { vertice in vertice + Vector(0, 0, -height) }
+        let bottomOutline = innerOutline.map { vertice in vertice + Vector(0, 0, -height) }
         let bottomOutlinePlane = Plane(vertices: bottomOutline)
 
+        /*
         Decoration(color: .gray, lineStyle: .regularDash) {
             Polygon(vertices: prescaledPlane.vertices)
 
@@ -103,6 +120,7 @@ struct FromSidesView: ShapeMaker {
                 LineSection(from: prescaledPlane.west.middle, to: prescaledPlane.east.middle)
             }
         }
+        */
 
         let insideSetbacks = bendAngles.map { bendAngle in
             return Bend.insideSetback(angle: bendAngle,
@@ -180,24 +198,20 @@ struct FromSidesView: ShapeMaker {
 
             let bendArcLength = bendAngle * state.bendRadius
 
-            /*
-             Decoration(color: .cyan, lineStyle: .regularDash) {
-                 LineSection(from: edge.middle, to: drop)
-                 LineSection(from: drop + edge.edge.scaled(by: -0.1), to: drop + edge.edge.scaled(by: 0.1))
-                 LineSection(from: drop, to: pivotPoint)
-             }
-
-             Decoration(color: .orange) {
-                 Circle(center: pivotPoint, radius: 2)
-                 Circle(center: drop, radius: 2)
-                 Circle(center: bendPoint, radius: 2)
-             }
-             */
+            let kFactorExtension = state.thickness * state.kFactor
 
             // 3d version
-            Decoration(color: .blue) {
+
+            Decoration(color: .red) {
                 Decoration(lineStyle: .bendDash) {
                     LineSection(from: scaledEdge.vertex0, to: scaledEdge.vertex1)
+                }
+
+                Decoration(color: .purple) {
+                    LineSection(from: firstScaledCorner + pivotPointRelativeToBendPoint,
+                                to: firstScaledCorner + pivotPointRelativeToBendPoint + sideNormal.scaled(by: state.thickness + state.bendRadius))
+
+                    Circle(center: firstScaledCorner + pivotPointRelativeToBendPoint, radius: 4)
                 }
 
                 Orbit(pivot: firstScaledCorner + pivotPointRelativeToBendPoint,
@@ -215,199 +229,174 @@ struct FromSidesView: ShapeMaker {
                 LineSection(from: firstFullCorner, to: firstScaledCorner + dropRelativeToBendPoint)
                 LineSection(from: secondScaledCorner + dropRelativeToBendPoint, to: secondFullCorner)
 
-                LineSection(from: firstFullCorner, to: bottomEdge.vertex0)
-                LineSection(from: secondFullCorner, to: bottomEdge.vertex1)
-                LineSection(from: bottomEdge.vertex0, to: bottomEdge.vertex1)
+                LineSection(from: firstFullCorner, to: firstFullCorner.with(z: -state.height))
+                LineSection(from: secondFullCorner, to: secondFullCorner.with(z: -state.height))
+                LineSection(from: firstFullCorner.with(z: -state.height), to: secondFullCorner.with(z: -state.height))
             }
 
             // 3d at neutral exis
-            Decoration(color: .red) {
-                let kFactorExtension = state.thickness * state.kFactor
-                Decoration(lineStyle: .bendDash) {
-                    LineSection(from: scaledEdge.vertex0 + prescaledPlane.normal.scaled(by: kFactorExtension),
-                                to: scaledEdge.vertex1 + prescaledPlane.normal.scaled(by: kFactorExtension))
-                }
-
-                Orbit(pivot: firstScaledCorner + pivotPointRelativeToBendPoint,
-                      point: firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
-                      rotation: bendRotation)
-
-                Orbit(pivot: secondScaledCorner + pivotPointRelativeToBendPoint,
-                      point: secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
-                      rotation: bendRotation)
-
-                Decoration(lineStyle: .bendDash) {
-                    LineSection(from: firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
-                                to: secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension))
-                }
-
-                LineSection(from: firstFullCorner + sideNormal.scaled(by: kFactorExtension),
-                            to: firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension))
-                LineSection(from: secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
-                            to: secondFullCorner + sideNormal.scaled(by: kFactorExtension))
-
-                LineSection(from: firstFullCorner + sideNormal.scaled(by: kFactorExtension),
-                            to: bottomEdge.vertex0 + sideNormal.scaled(by: kFactorExtension))
-                LineSection(from: secondFullCorner + sideNormal.scaled(by: kFactorExtension),
-                            to: bottomEdge.vertex1 + sideNormal.scaled(by: kFactorExtension))
-                LineSection(from: bottomEdge.vertex0 + sideNormal.scaled(by: kFactorExtension),
-                            to: bottomEdge.vertex1 + sideNormal.scaled(by: kFactorExtension))
-            }
             /*
-             // 3d backrotated flaps
-             Decoration(color: .black) {
-                 let top1 = firstScaledCorner + dropRelativeToBendPoint
-                 let top2 = secondScaledCorner + dropRelativeToBendPoint
-                 let secondBend1 = firstScaledCorner + dropRelativeToBendPoint
-                 let secondBend2 = secondScaledCorner + dropRelativeToBendPoint
-                 let secondOuterBendExtension1 = firstFullCorner
-                 let secondInnerBendExtension1 = firstScaledCorner + dropRelativeToBendPoint
-                 let secondOuterBendExtension2 = secondFullCorner
-                 let secondInnerBendExtension2 = secondScaledCorner + dropRelativeToBendPoint
-                 let bottomCorner1 = bottomEdge.vertex0
-                 let bottomCorner2 = bottomEdge.vertex1
-
-                 let bendAllowanceVector = edge.normal.scaled(by: bendArcLength)
-
-                 let top1Backrotated = top1.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let top2Backrotated = top2.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let secondBend1Backrotated = secondBend1.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let secondBend2Backrotated = secondBend2.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let secondOuterBendExtension1Backrotated = secondOuterBendExtension1.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let secondInnerBendExtension1Backrotated = secondInnerBendExtension1.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let secondOuterBendExtension2Backrotated = secondOuterBendExtension2.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let secondInnerBendExtension2Backrotated = secondInnerBendExtension2.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let bottomCorner1Backrotated = bottomCorner1.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-                 let bottomCorner2Backrotated = bottomCorner2.rotated(by: bendRotation, pivot: pivotPoint) + bendAllowanceVector
-
-                 LineSection(from: scaledEdge.vertex0, to: top1Backrotated)
-                 LineSection(from: scaledEdge.vertex1, to: top2Backrotated)
-
+             Decoration(color: .red) {
                  Decoration(lineStyle: .bendDash) {
-                     LineSection(from: scaledEdge.vertex0, to: scaledEdge.vertex1)
+                     LineSection(from: scaledEdge.vertex0 + prescaledPlane.normal.scaled(by: kFactorExtension),
+                                 to: scaledEdge.vertex1 + prescaledPlane.normal.scaled(by: kFactorExtension))
                  }
 
-                 Decoration(lineStyle: .bendDash) {
-                     LineSection(from: top1Backrotated, to: top2Backrotated)
-                 }
+                 Orbit(pivot: firstScaledCorner + pivotPointRelativeToBendPoint,
+                       point: firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
+                       rotation: bendRotation)
+
+                 Orbit(pivot: secondScaledCorner + pivotPointRelativeToBendPoint,
+                       point: secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
+                       rotation: bendRotation)
 
                  Decoration(lineStyle: .bendDash) {
-                     LineSection(from: secondBend1Backrotated, to: secondBend2Backrotated)
+                     LineSection(from: firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
+                                 to: secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension))
                  }
 
-                 LineSection(from: secondOuterBendExtension1Backrotated, to: secondInnerBendExtension1Backrotated)
-                 LineSection(from: secondInnerBendExtension2Backrotated, to: secondOuterBendExtension2Backrotated)
+                 LineSection(from: firstFullCorner + sideNormal.scaled(by: kFactorExtension),
+                             to: firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension))
+                 LineSection(from: secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension),
+                             to: secondFullCorner + sideNormal.scaled(by: kFactorExtension))
 
-                 LineSection(from: secondOuterBendExtension1Backrotated, to: bottomCorner1Backrotated)
-                 LineSection(from: secondOuterBendExtension2Backrotated, to: bottomCorner2Backrotated)
-                 LineSection(from: bottomCorner1Backrotated, to: bottomCorner2Backrotated)
-             }
-              */
-
-            /*
-             // built inside out
-             Decoration(color: .purple) {
-                 let firstCorner = bendPoint + edge.edge.scaled(by: -0.5)
-                 let firstPivotPoint = firstCorner + pivotPointRelativeToBendPoint
-                 let toFirstLegTop = dropRelativeToBendPoint - pivotPointRelativeToBendPoint
-                 let toFirstLegBottom = toFirstLegTop + bottomEdge.vertex0 - firstFullCorner
-                 let toFirstLegTopRotated = bendRotation.act(toFirstLegTop)
-                 let toFirstLegBottomRotated = bendRotation.act(toFirstLegBottom)
-
-                 let firstEdgeExtension = (firstScaledCorner - firstFullCorner + dropRelativeToBendPoint).length
-                 let secondEdgeExtension = (secondScaledCorner - secondFullCorner + dropRelativeToBendPoint).length
-
-                 let secondCorner = bendPoint + edge.edge.scaled(by: 0.5)
-                 let secondPivotPoint = secondCorner + pivotPointRelativeToBendPoint
-                 let toSecondLegTop = dropRelativeToBendPoint - pivotPointRelativeToBendPoint
-                 let toSecondLegBottom = toSecondLegTop + bottomEdge.vertex1 - secondFullCorner
-                 let toSecondLegTopRotated = bendRotation.act(toSecondLegTop)
-                 let toSecondLegBottomRotated = bendRotation.act(toSecondLegBottom)
-
-                 let bendAllowance = bendAngle * state.bendRadius
-
-                 let bendAllowenceOffset = edge.normal.scaled(by: bendAllowance)
-
-                 let firstEdgeExtensionPoint = bendAllowenceOffset + firstPivotPoint + toFirstLegTopRotated + edge.direction.scaled(by: firstEdgeExtension)
-                 let secondEdgeExtensionPoint = bendAllowenceOffset + secondPivotPoint + toSecondLegTopRotated + edge.direction.scaled(by: -secondEdgeExtension)
-
-                 LineSection(from: bendAllowenceOffset + firstPivotPoint + toFirstLegTopRotated,
-                             to: bendAllowenceOffset + firstPivotPoint + toFirstLegBottomRotated)
-
-                 LineSection(from: bendAllowenceOffset + firstPivotPoint + toFirstLegTopRotated,
-                             to: firstEdgeExtensionPoint)
-
-                 LineSection(from: bendAllowenceOffset + secondPivotPoint + toSecondLegTopRotated,
-                             to: bendAllowenceOffset + secondPivotPoint + toSecondLegBottomRotated)
-
-                 LineSection(from: bendAllowenceOffset + firstPivotPoint + toFirstLegBottomRotated,
-                             to: bendAllowenceOffset + secondPivotPoint + toSecondLegBottomRotated)
-
-                 LineSection(from: bendAllowenceOffset + secondPivotPoint + toSecondLegTopRotated,
-                             to: secondEdgeExtensionPoint)
-
-                 Decoration(lineStyle: .bendDash) {
-                     LineSection(from: firstEdgeExtensionPoint,
-                                 to: secondEdgeExtensionPoint)
-
-                     LineSection(from: firstScaledCorner,
-                                 to: secondScaledCorner)
-                 }
-
-                 LineSection(from: firstEdgeExtensionPoint,
-                             to: firstScaledCorner)
-                 LineSection(from: secondEdgeExtensionPoint,
-                             to: secondScaledCorner)
+                 LineSection(from: firstFullCorner + sideNormal.scaled(by: kFactorExtension),
+                             to: bottomEdge.vertex0 + sideNormal.scaled(by: kFactorExtension))
+                 LineSection(from: secondFullCorner + sideNormal.scaled(by: kFactorExtension),
+                             to: bottomEdge.vertex1 + sideNormal.scaled(by: kFactorExtension))
+                 LineSection(from: bottomEdge.vertex0 + sideNormal.scaled(by: kFactorExtension),
+                             to: bottomEdge.vertex1 + sideNormal.scaled(by: kFactorExtension))
              }
              */
 
-            /*
+            // 3d opened flaps at neutral axis
+            Decoration(color: .black) {
+                // extend these (pivotPointRelativeToBendPoint, dropRelativeToBendPoint) by kFactorExtension
 
-             // 2d handmade aligned with top
-             Decoration(color: .red) {
-                 let bendExtension = backRotatedEdge.normal.scaled(by: bendArcLength)
-                 LineSection(from: backRotatedEdge.vertex0, to: backRotatedEdge.vertex0 + bendExtension)
-                 LineSection(from: backRotatedEdge.vertex1, to: backRotatedEdge.vertex1 + bendExtension)
+                let top1 = firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension)
+                let top2 = secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension)
 
-                 let firstEdgeExtension = (firstScaledCorner - firstFullCorner + dropRelativeToBendPoint).length
-                 let secondEdgeExtension = (secondScaledCorner - secondFullCorner + dropRelativeToBendPoint).length
+                let secondOuterBendExtension1 = firstFullCorner + sideNormal.scaled(by: kFactorExtension)
+                let secondInnerBendExtension1 = firstScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension)
+                let secondOuterBendExtension2 = secondFullCorner + sideNormal.scaled(by: kFactorExtension)
+                let secondInnerBendExtension2 = secondScaledCorner + dropRelativeToBendPoint + sideNormal.scaled(by: kFactorExtension)
+                let bottomCorner1 = secondOuterBendExtension1.with(z: -state.height)
+                let bottomCorner2 = secondOuterBendExtension2.with(z: -state.height)
 
-                 let firstLegLength = ((firstFullCorner + dropRelativeToBendPoint) - bottomEdge.vertex0).length
-                 let secondLegLength = ((secondFullCorner + dropRelativeToBendPoint) - bottomEdge.vertex1).length
+                let edgeVertex0 = scaledEdge.vertex0 + prescaledPlane.normal.scaled(by: kFactorExtension)
+                let edgeVertex1 = scaledEdge.vertex1 + prescaledPlane.normal.scaled(by: kFactorExtension)
 
-                 let firstFullFlatCorner = backRotatedEdge.vertex0 + bendExtension + backRotatedEdge.direction.scaled(by: -firstEdgeExtension)
+                Decoration(color: .blue) {
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: edgeVertex0,
+                                    to: edgeVertex1)
+                    }
 
-                 let secondFullFlatCorner = backRotatedEdge.vertex1 + bendExtension + backRotatedEdge.direction.scaled(by: secondEdgeExtension)
+                    Orbit(pivot: firstScaledCorner + pivotPointRelativeToBendPoint,
+                          point: top1,
+                          rotation: bendRotation)
 
-                 let legRotation = Quat(angle: oppositeRotationAngle, axis: Vector(0, 0, 1))
-                 let firstLeg = legRotation.act(backRotatedEdge.normal.scaled(by: firstLegLength))
-                 let secondLeg = legRotation.act(backRotatedEdge.normal.scaled(by: secondLegLength))
+                    Orbit(pivot: secondScaledCorner + pivotPointRelativeToBendPoint,
+                          point: top2,
+                          rotation: bendRotation)
 
-                 Decoration(lineStyle: .bendDash) {
-                     LineSection(from: backRotatedEdge.vertex0, to: backRotatedEdge.vertex1)
-                 }
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: top1, to: top2)
+                    }
 
-                 Decoration(lineStyle: .bendDash) {
-                     LineSection(from: backRotatedEdge.vertex0 + bendExtension,
-                                 to: backRotatedEdge.vertex1 + bendExtension)
-                 }
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: top1, to: top2)
+                    }
 
-                 LineSection(from: backRotatedEdge.vertex0 + bendExtension,
-                             to: firstFullFlatCorner)
+                    LineSection(from: secondOuterBendExtension1, to: secondInnerBendExtension1)
+                    LineSection(from: secondInnerBendExtension2, to: secondOuterBendExtension2)
 
-                 LineSection(from: backRotatedEdge.vertex1 + bendExtension,
-                             to: secondFullFlatCorner)
+                    LineSection(from: secondOuterBendExtension1, to: bottomCorner1)
+                    LineSection(from: secondOuterBendExtension2, to: bottomCorner2)
+                    LineSection(from: bottomCorner1, to: bottomCorner2)
+                }
 
-                 LineSection(from: firstFullFlatCorner,
-                             to: firstFullFlatCorner + firstLeg)
+                let bendAllowanceVector = edge.normal.scaled(by: 0 /* bendAllowance */ )
 
-                 LineSection(from: secondFullFlatCorner,
-                             to: secondFullFlatCorner + secondLeg)
+                let firstPivot = firstScaledCorner + pivotPointRelativeToBendPoint
+                let secondPivot = secondScaledCorner + pivotPointRelativeToBendPoint
+                let top1Backrotated = top1.rotated(by: bendRotation, pivot: firstPivot) + bendAllowanceVector
+                let top2Backrotated = top2.rotated(by: bendRotation, pivot: secondPivot) + bendAllowanceVector
 
-                 LineSection(from: firstFullFlatCorner + firstLeg,
-                             to: secondFullFlatCorner + secondLeg)
-             }
-              */
+                let secondOuterBendExtension1Backrotated = secondOuterBendExtension1.rotated(by: bendRotation, pivot: firstPivot) + bendAllowanceVector
+                let secondInnerBendExtension1Backrotated = secondInnerBendExtension1.rotated(by: bendRotation, pivot: firstPivot) + bendAllowanceVector
+                let secondOuterBendExtension2Backrotated = secondOuterBendExtension2.rotated(by: bendRotation, pivot: secondPivot) + bendAllowanceVector
+                let secondInnerBendExtension2Backrotated = secondInnerBendExtension2.rotated(by: bendRotation, pivot: secondPivot) + bendAllowanceVector
+                let bottomCorner1Backrotated = bottomCorner1.rotated(by: bendRotation, pivot: firstPivot) // + bendAllowanceVector
+                let bottomCorner2Backrotated = bottomCorner2.rotated(by: bendRotation, pivot: secondPivot) // + bendAllowanceVector
+
+                let reprojectionRotation = Quat(from: prescaledPlane.normal, to: Vector(0, 0, 1))
+                let reprojectionCenter = prescaledPlane.center
+
+                Decoration(color: .clear) {
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: edgeVertex0,
+                                    to: edgeVertex1)
+                    }
+                    LineSection(from: edgeVertex0,
+                                to: top1Backrotated)
+                    LineSection(from: edgeVertex1,
+                                to: top2Backrotated)
+
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: top1Backrotated, to: top2Backrotated)
+                    }
+
+                    LineSection(from: secondOuterBendExtension1Backrotated, to: secondInnerBendExtension1Backrotated)
+                    LineSection(from: secondInnerBendExtension2Backrotated, to: secondOuterBendExtension2Backrotated)
+
+                    LineSection(from: secondOuterBendExtension1Backrotated, to: bottomCorner1Backrotated)
+                    /*
+                     LineSection(from: secondOuterBendExtension2Backrotated, to: bottomCorner2Backrotated)
+                     LineSection(from: bottomCorner1Backrotated, to: bottomCorner2Backrotated)
+                      */
+                }
+
+                // reprojected
+                let offset = Vector(0, 0, 0)
+                let top1Reprojected = top1Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let top2Reprojected = top2Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+
+                let secondOuterBendExtension1Reprojected = secondOuterBendExtension1Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let secondInnerBendExtension1Reprojected = secondInnerBendExtension1Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let secondOuterBendExtension2Reprojected = secondOuterBendExtension2Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let secondInnerBendExtension2Reprojected = secondInnerBendExtension2Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let bottomCorner1Reprojected = bottomCorner1Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let bottomCorner2Reprojected = bottomCorner2Backrotated.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let edgeVertex0Reprojected = edgeVertex0.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+                let edgeVertex1Reprojected = edgeVertex1.rotated(by: reprojectionRotation, pivot: reprojectionCenter) + offset
+
+                Decoration(color: .clear) {
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: edgeVertex0Reprojected,
+                                    to: edgeVertex1Reprojected)
+                    }
+                    LineSection(from: edgeVertex0Reprojected,
+                                to: top1Reprojected)
+                    LineSection(from: edgeVertex1Reprojected,
+                                to: top2Reprojected)
+
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: top1Reprojected, to: top2Reprojected)
+                    }
+
+                    Decoration(lineStyle: .bendDash) {
+                        LineSection(from: top1Reprojected, to: top2Reprojected)
+                    }
+
+                    LineSection(from: secondOuterBendExtension1Reprojected, to: secondInnerBendExtension1Reprojected)
+                    LineSection(from: secondInnerBendExtension2Reprojected, to: secondOuterBendExtension2Reprojected)
+
+                    LineSection(from: secondOuterBendExtension1Reprojected, to: bottomCorner1Reprojected)
+                    LineSection(from: secondOuterBendExtension2Reprojected, to: bottomCorner2Reprojected)
+                    LineSection(from: bottomCorner1Reprojected, to: bottomCorner2Reprojected)
+                }
+            }
         }
     }
 }

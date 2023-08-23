@@ -136,6 +136,10 @@ struct Plane {
                      vertex3: vertex3 + (vertex3 - vertex0).normalized.scaled(by: amount))
     }
 
+    var center: Vector {
+        return vertices.reduce(Vector(), +).scaled(by: 0.5)
+    }
+
     var north: PlaneEdge {
         return PlaneEdge(plane: self,
                          vertex0index: 0,
@@ -215,8 +219,6 @@ struct PlaneEdge {
             .offsetVertex(vertex0index, by: normal.scaled(by: amount))
             .offsetVertex(vertex1index, by: normal.scaled(by: amount))
     }
-
-
 
     func resizedAlongSides(byDistanceAlongNormal amount: Double) -> Plane {
         let previousIndex = (vertex0index - 1) %% 4
