@@ -220,6 +220,12 @@ struct PlaneEdge {
             .offsetVertex(vertex1index, by: normal.scaled(by: amount))
     }
 
+    func offsetted(by offset: Vector) -> Plane {
+        return plane
+            .offsetVertex(vertex0index, by: offset)
+            .offsetVertex(vertex1index, by: offset)
+    }
+
     func resizedAlongSides(byDistanceAlongNormal amount: Double) -> Plane {
         let previousIndex = (vertex0index - 1) %% 4
         let nextIndex = (vertex1index + 1) %% 4
