@@ -157,7 +157,7 @@ struct FromSidesView: ShapeMaker {
                     LineSection(from: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness), to: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness))
                 }
 
-                LineSection(from: bottomInsideEdge.vertex0, to: bottomInsideEdge.vertex1)
+
 
                 Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0, rotation: bendRotationDown, spokes: true)
                 Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + prescaledPlane.normal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: true)
@@ -165,24 +165,57 @@ struct FromSidesView: ShapeMaker {
                 Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1, rotation: bendRotationDown, spokes: true)
                 Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + prescaledPlane.normal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: true)
 
-                let sideTop0 = topUndersideEdge.vertex0 + relativePivotPoint + bendRotationDown.act(-relativePivotPoint)
-                let sideTop0out = topUndersideEdge.vertex0 + relativePivotPoint + bendRotationDown.act(-relativePivotPoint) + sideNormal.scaled(by: state.thickness)
+                let straightLeft = Vector(0, 0, 1).cross(sideNormal)
 
-                Decoration(color: .blue) {
-                    Arrow(from: topUndersideEdge.vertex0, to: sideTop0)
-                    let sideA = prescaledPlane.edges[index].vertex0 - sideTop0
-                    let straightLeft = Vector(0,0,1).cross(sideNormal)
+                // FIXME: Remove gap when we dont need it
+                let rightSidePadding = state.thickness * 1.3
 
-                    let aOnLeft = sideA.projected(onto: straightLeft).extended(by: state.thickness)
-                    Arrow(vector: sideA, origo: sideTop0)
-                    Arrow(vector: straightLeft.scaled(by: 5), origo: sideTop0)
+                let sideInnerTopUnderside0 = topUndersideEdge.vertex0 + relativePivotPoint + bendRotationDown.act(-relativePivotPoint)
+                let sidePaddingAlongTopNormal0 = prescaledPlane.edges[index].vertex0 - sideInnerTopUnderside0
+                let sidePaddingHorizontal0 = sidePaddingAlongTopNormal0.projected(onto: straightLeft).extended(by: state.thickness)
+                let sideOuterTopUnderside0 = sideInnerTopUnderside0 + sidePaddingHorizontal0
+                let sideInnerTopOverside0 = sideInnerTopUnderside0 + sideNormal.scaled(by: state.thickness)
+                let sideOuterTopOverside0 = sideOuterTopUnderside0 + sideNormal.scaled(by: state.thickness)
 
-                    Decoration(color: .green) {
-                        Arrow(vector: aOnLeft, origo: sideTop0)
-                        Arrow(vector: aOnLeft, origo: sideTop0out)
-                    }
+                let sideInnerTopUnderside1 = topUndersideEdge.vertex1 + relativePivotPoint + bendRotationDown.act(-relativePivotPoint)
+                let sidePaddingAlongTopNormal1 = prescaledPlane.edges[index].vertex1 - sideInnerTopUnderside1
 
+                let sidePaddingHorizontal1 = sidePaddingAlongTopNormal1.projected(onto: straightLeft).extended(by: state.thickness).extended(by: -rightSidePadding)
+                let sideOuterTopUnderside1 = sideInnerTopUnderside1 + sidePaddingHorizontal1
+                let sideInnerTopOverside1 = sideInnerTopUnderside1 + sideNormal.scaled(by: state.thickness)
+                let sideOuterTopOverside1 = sideOuterTopUnderside1 + sideNormal.scaled(by: state.thickness)
+
+                LineSection(from: sideInnerTopUnderside0, to: sideOuterTopUnderside0)
+                LineSection(from: sideInnerTopUnderside1, to: sideOuterTopUnderside1)
+
+                Decoration(lineStyle: .dashed()) {
+                    LineSection(from: sideInnerTopUnderside0, to: sideInnerTopOverside0)
+                    LineSection(from: sideInnerTopUnderside1, to: sideInnerTopOverside1)
                 }
+
+                LineSection(from: sideInnerTopOverside0, to: sideOuterTopOverside0)
+                LineSection(from: sideInnerTopOverside1, to: sideOuterTopOverside1)
+
+                LineSection(from: sideOuterTopUnderside0, to: sideOuterTopOverside0)
+                LineSection(from: sideOuterTopUnderside1, to: sideOuterTopOverside1)
+
+                let sideOuterBottomUnderside0 = bottomInsideEdge.vertex0 + straightLeft.scaled(by: state.thickness)
+                let sideOuterBottomUnderside1 = bottomInsideEdge.vertex1 - straightLeft.scaled(by: state.thickness - rightSidePadding)
+
+                let sideOuterBottomOverside0 = sideOuterBottomUnderside0 + sideNormal.scaled(by: state.thickness)
+                let sideOuterBottomOverside1 = sideOuterBottomUnderside1 + sideNormal.scaled(by: state.thickness)
+
+                LineSection(from: sideOuterTopUnderside0, to: sideOuterBottomUnderside0)
+                LineSection(from: sideOuterTopUnderside1, to: sideOuterBottomUnderside1)
+
+                LineSection(from: sideOuterTopOverside0, to: sideOuterBottomOverside0)
+                LineSection(from: sideOuterTopOverside1, to: sideOuterBottomOverside1)
+
+                LineSection(from: sideOuterBottomUnderside0, to: sideOuterBottomOverside0)
+                LineSection(from: sideOuterBottomUnderside1, to: sideOuterBottomOverside1)
+
+                LineSection(from: sideOuterBottomUnderside0, to: sideOuterBottomUnderside1)
+                LineSection(from: sideOuterBottomOverside0, to: sideOuterBottomOverside1)
             }
         }
     }
