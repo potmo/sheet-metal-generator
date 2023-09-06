@@ -170,16 +170,24 @@ struct FromSidesView: ShapeMaker {
             let sidePaddingAlongTopNormal0 = prescaledPlane.edges[index].vertex0 - sideInnerTopUnderside0
             let sidePaddingHorizontal0 = sidePaddingAlongTopNormal0.projected(onto: straightLeft).extended(by: state.thickness)
             let sideOuterTopUnderside0 = sideInnerTopUnderside0 + sidePaddingHorizontal0
+
             let sideInnerTopOverside0 = sideInnerTopUnderside0 + sideNormal.scaled(by: state.thickness)
             let sideOuterTopOverside0 = sideOuterTopUnderside0 + sideNormal.scaled(by: state.thickness)
+
+            let sideInnerTopNeutral0 = sideInnerTopUnderside0 + sideNormal.scaled(by: state.thickness * state.kFactor)
+            let sideOuterTopNeutral0 = sideOuterTopUnderside0 + sideNormal.scaled(by: state.thickness * state.kFactor)
 
             let sideInnerTopUnderside1 = topUndersideEdge.vertex1 + relativePivotPoint + sideNormal.scaled(by: state.bendRadius) // bendRotationDown.act(-relativePivotPoint)
             let sidePaddingAlongTopNormal1 = prescaledPlane.edges[index].vertex1 - sideInnerTopUnderside1
 
             let sidePaddingHorizontal1 = sidePaddingAlongTopNormal1.projected(onto: straightLeft).extended(by: state.thickness).extended(by: -rightSidePadding)
             let sideOuterTopUnderside1 = sideInnerTopUnderside1 + sidePaddingHorizontal1
+
             let sideInnerTopOverside1 = sideInnerTopUnderside1 + sideNormal.scaled(by: state.thickness)
             let sideOuterTopOverside1 = sideOuterTopUnderside1 + sideNormal.scaled(by: state.thickness)
+
+            let sideInnerTopNeutral1 = sideInnerTopUnderside1 + sideNormal.scaled(by: state.thickness * state.kFactor)
+            let sideOuterTopNeutral1 = sideOuterTopUnderside1 + sideNormal.scaled(by: state.thickness * state.kFactor)
 
             let sideOuterBottomUnderside0 = bottomInsideEdge.vertex0 + straightLeft.scaled(by: state.thickness)
             let sideOuterBottomUnderside1 = bottomInsideEdge.vertex1 - straightLeft.scaled(by: state.thickness - rightSidePadding)
@@ -187,42 +195,103 @@ struct FromSidesView: ShapeMaker {
             let sideOuterBottomOverside0 = sideOuterBottomUnderside0 + sideNormal.scaled(by: state.thickness)
             let sideOuterBottomOverside1 = sideOuterBottomUnderside1 + sideNormal.scaled(by: state.thickness)
 
-            Decoration(color: .clear) {
+            let sideOuterBottomNeutral0 = sideOuterBottomUnderside0 + sideNormal.scaled(by: state.thickness * state.kFactor)
+            let sideOuterBottomNeutral1 = sideOuterBottomUnderside1 + sideNormal.scaled(by: state.thickness * state.kFactor)
+
+            Decoration(color: .red) {
+                // top plane
                 Decoration(lineStyle: .bendDash) {
-                    LineSection(from: topUndersideEdge.vertex0, to: topUndersideEdge.vertex1)
-                    LineSection(from: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness), to: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness))
+                    LineSection(from: topUndersideEdge.vertex0,
+                                to: topUndersideEdge.vertex1)
+
+                    Decoration(color: .cyan) {
+                        LineSection(from: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness * state.kFactor),
+                                    to: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness * state.kFactor))
+                    }
+
+                    LineSection(from: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness),
+                                to: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness))
                 }
 
-                Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0, rotation: bendRotationDown, spokes: true)
-                Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: true)
+                // left bend
+                Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0, rotation: bendRotationDown, spokes: false)
 
-                Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1, rotation: bendRotationDown, spokes: true)
-                Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: true)
+                Decoration(color: .cyan) {
+                    Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness * state.kFactor), rotation: bendRotationDown, spokes: false)
+                }
 
-                LineSection(from: sideInnerTopUnderside0, to: sideOuterTopUnderside0)
-                LineSection(from: sideInnerTopUnderside1, to: sideOuterTopUnderside1)
+                Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: false)
 
+                Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1, rotation: bendRotationDown, spokes: false)
+
+                // right bend
+                Decoration(color: .cyan) {
+                    Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness * state.kFactor), rotation: bendRotationDown, spokes: false)
+                }
+
+                Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: false)
+
+                // bend bottom inside corners
                 Decoration(lineStyle: .dashed()) {
                     LineSection(from: sideInnerTopUnderside0, to: sideInnerTopOverside0)
                     LineSection(from: sideInnerTopUnderside1, to: sideInnerTopOverside1)
+
+                    LineSection(from: topUndersideEdge.vertex0, to: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness))
+                    LineSection(from: topUndersideEdge.vertex1, to: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness))
                 }
 
+                // side top bend line
+                Decoration(lineStyle: .dashed()) {
+                    LineSection(from: sideInnerTopUnderside0, to: sideInnerTopUnderside1)
+                    Decoration(color: .cyan) {
+                        LineSection(from: sideInnerTopNeutral0, to: sideInnerTopNeutral1)
+                    }
+                    LineSection(from: sideInnerTopOverside0, to: sideInnerTopOverside1)
+                }
+
+                // left side extension
+                LineSection(from: sideInnerTopUnderside0, to: sideOuterTopUnderside0)
+                Decoration(color: .cyan) {
+                    LineSection(from: sideInnerTopNeutral0, to: sideOuterTopNeutral0)
+                }
                 LineSection(from: sideInnerTopOverside0, to: sideOuterTopOverside0)
+
+                // right side extension
+                LineSection(from: sideInnerTopUnderside1, to: sideOuterTopUnderside1)
+                Decoration(color: .cyan) {
+                    LineSection(from: sideInnerTopNeutral1, to: sideOuterTopNeutral1)
+                }
                 LineSection(from: sideInnerTopOverside1, to: sideOuterTopOverside1)
 
+                // side extension edge left
                 LineSection(from: sideOuterTopUnderside0, to: sideOuterTopOverside0)
+
+                // side extension edge right
                 LineSection(from: sideOuterTopUnderside1, to: sideOuterTopOverside1)
 
+                // outside to down left
                 LineSection(from: sideOuterTopUnderside0, to: sideOuterBottomUnderside0)
-                LineSection(from: sideOuterTopUnderside1, to: sideOuterBottomUnderside1)
-
+                Decoration(color: .cyan) {
+                    LineSection(from: sideOuterTopNeutral0, to: sideOuterBottomNeutral0)
+                }
                 LineSection(from: sideOuterTopOverside0, to: sideOuterBottomOverside0)
+
+                // outside to down right
+                LineSection(from: sideOuterTopUnderside1, to: sideOuterBottomUnderside1)
+                Decoration(color: .cyan) {
+                    LineSection(from: sideOuterTopNeutral1, to: sideOuterBottomNeutral1)
+                }
                 LineSection(from: sideOuterTopOverside1, to: sideOuterBottomOverside1)
 
+                // bottom corner edge
                 LineSection(from: sideOuterBottomUnderside0, to: sideOuterBottomOverside0)
                 LineSection(from: sideOuterBottomUnderside1, to: sideOuterBottomOverside1)
 
+                // bottom long edge
                 LineSection(from: sideOuterBottomUnderside0, to: sideOuterBottomUnderside1)
+                Decoration(color: .cyan) {
+                    LineSection(from: sideOuterBottomNeutral0, to: sideOuterBottomNeutral1)
+                }
                 LineSection(from: sideOuterBottomOverside0, to: sideOuterBottomOverside1)
             }
 
@@ -322,7 +391,7 @@ struct FromSidesView: ShapeMaker {
             let lidOversideCorner0Projected = lidOversideCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidOversideCorner1Projected = lidOversideCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
 
-            Decoration(color: .green) {
+            Decoration(color: .clear) {
                 LineSection(from: sideInnerTopUnderside0Projected, to: sideOuterTopUnderside0Projected)
                 LineSection(from: sideInnerTopUnderside1Projected, to: sideOuterTopUnderside1Projected)
 
