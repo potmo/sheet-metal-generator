@@ -29,8 +29,10 @@ struct FromSidesView: ShapeMaker {
             Arrow(vector: [0, 0, 3], origo: [0, 0, 0])
         }
 
-        let localYAxis = Quat(angle: state.angleAroundX.degreesToRadians, axis: Vector(1, 0, 0)).act(Vector(0, 1, 0))
-        let localXAxis = Quat(angle: state.angleAroundY.degreesToRadians, axis: Vector(0, 1, 0)).act(Vector(1, 0, 0))
+        let xAxisRotation = Quat(angle: state.angleAroundX.degreesToRadians, axis: Vector(1, 0, 0))
+        let yAxisRotation = Quat(angle: state.angleAroundY.degreesToRadians, axis: Vector(0, 1, 0))
+        let localYAxis = xAxisRotation.act(Vector(0, 1, 0))
+        let localXAxis = yAxisRotation.act(Vector(1, 0, 0))
         let planeNormal = localXAxis.cross(localYAxis).normalized
 
         // draw outline
@@ -60,7 +62,7 @@ struct FromSidesView: ShapeMaker {
             $0.with(z: -state.height)
         }
 
-        Decoration(color: .orange, lineStyle: .dashed()) {
+        Decoration(color: .clear, lineStyle: .dashed()) {
             Polygon(vertices: innerOutline)
             Polygon(vertices: outsideOutline)
 
@@ -71,28 +73,42 @@ struct FromSidesView: ShapeMaker {
             Polygon(vertices: outsideBottomOutline)
         }
 
-        let bendRotations = sideNormals.map { sideNormal in
-            return Quat(from: planeNormal, to: sideNormal)
+        let prescaledPlane = Plane(fitting: state.size - state.thickness * 2, // offset in to make space for sheet thickness
+                                   normal: planeNormal)
+
+        let bendRotations = sideNormals.enumerated().map { index, sideNormal -> Quat in
+
+            let axis = prescaledPlane.edges[index].direction.scaled(by: -1.0)
+            // do the calculations myself since that seems to be slightly more accurate
+            let u = planeNormal.normalized
+            let v = sideNormal.normalized
+            let computed = Quat(real: 1.0 + u.dot(v), imag: u.cross(v)).normalized
+
+            return computed
+            // return Quat(angle: computed.angle, axis: axis)
+
+            // this adds a fractional amount of direction in the axis it shoudn't
+            // return Quat(from: planeNormal, to: sideNormal).normalized
         }
 
         let bendAngles = bendRotations.map { bendRotation in
             bendRotation.angle
         }
 
-        let prescaledPlane = Plane(fitting: state.size - state.thickness * 2, // offset in to make space for sheet thickness
-                                   normal: planeNormal)
+        let northBendAngle = +state.angleAroundX
+        let eastBendAngle = -state.angleAroundY
+        let southBendAngle = -state.angleAroundX
+        let westBendAngle = +state.angleAroundY
+
+        let oldBendAngles = [
+            northBendAngle + 90,
+            eastBendAngle + 90,
+            southBendAngle + 90,
+            westBendAngle + 90,
+        ]
+        .map(\.degreesToRadians)
 
         let midPlane = prescaledPlane.vertices.reduce(Vector(), +).scaled(by: 1 / 4)
-
-        Decoration(color: .purple) {
-            Arrow(vector: prescaledPlane.normal.scaled(by: 10), origo: midPlane)
-        }
-        /*
-         Decoration(color: .mint) {
-             Arrow(from: Vector(), to: localXAxis.scaled(by: 20))
-             Arrow(from: Vector(), to: localYAxis.scaled(by: 20))
-         }
-         */
 
         let bottomOutline = innerOutline.map { vertice in vertice.with(z: -state.height) }
         let bottomOutlinePlane = Plane(vertices: bottomOutline)
@@ -115,14 +131,23 @@ struct FromSidesView: ShapeMaker {
                                       materialThickness: state.thickness)
         }
 
+        let setbackInTopPlane = insideSetbacks.indices.map { index -> Vector in
+            let insideSetback = insideSetbacks[index]
+            let edgeNormal = planeNormal.cross(bendRotations[index].axis)
+            let sideDirection = prescaledPlane.edges[(index + 1) % 4].direction
+            let scalar = 1.0 / sideDirection.scalarProjection(onto: edgeNormal)
+            return sideDirection.scaled(by: scalar).scaled(by: insideSetback)
+        }
+
         let topUndersidePlane = prescaledPlane
-            .north.offsetted(by: planeNormal.cross(bendRotations[0].axis).scaled(by: insideSetbacks[0]).projected(ontoPlaneWithNormal: sideNormals[1]))
-            .east.offsetted(by: planeNormal.cross(bendRotations[1].axis).scaled(by: insideSetbacks[1]).projected(ontoPlaneWithNormal: sideNormals[2]))
-            .south.offsetted(by: planeNormal.cross(bendRotations[2].axis).scaled(by: insideSetbacks[2]).projected(ontoPlaneWithNormal: sideNormals[3]))
-            .west.offsetted(by: planeNormal.cross(bendRotations[3].axis).scaled(by: insideSetbacks[3]).projected(ontoPlaneWithNormal: sideNormals[0]))
+            .north.offsetted(by: setbackInTopPlane[0])
+            .east.offsetted(by: setbackInTopPlane[1])
+            .south.offsetted(by: setbackInTopPlane[2])
+            .west.offsetted(by: setbackInTopPlane[3])
 
         for (index, edge) in prescaledPlane.edges.enumerated() {
             let bendAngle = bendAngles[index]
+            let oldBendAngle = oldBendAngles[index]
             let sideNormal = sideNormals[index]
             let insideSetback = insideSetbacks[index]
             let outsideSetback = outsideSetbacks[index]
@@ -130,23 +155,25 @@ struct FromSidesView: ShapeMaker {
             let bottomInsideEdge = bottomOutlinePlane.edges[index]
             let bendAllowance = bendAllowances[index]
 
-            let relativePivotPoint = prescaledPlane.normal.scaled(by: -state.bendRadius)
+            let relativePivotPoint = planeNormal.scaled(by: -state.bendRadius)
 
+            let oldBendRotationDown = Quat(angle: oldBendAngle, axis: -topUndersideEdge.direction)
             let bendRotationDown = bendRotations[index]
+            let edgeNormal = bendRotationDown.axis.cross(planeNormal)
 
             let straightLeft = Vector(0, 0, 1).cross(sideNormal)
 
             // FIXME: Remove gap when we dont need it
             let rightSidePadding = state.thickness * 1.3
 
-            let sideInnerTopUnderside0 = topUndersideEdge.vertex0 + relativePivotPoint + bendRotationDown.act(-relativePivotPoint)
+            let sideInnerTopUnderside0 = topUndersideEdge.vertex0 + relativePivotPoint + sideNormal.scaled(by: state.bendRadius) // bendRotationDown.act(-relativePivotPoint)
             let sidePaddingAlongTopNormal0 = prescaledPlane.edges[index].vertex0 - sideInnerTopUnderside0
             let sidePaddingHorizontal0 = sidePaddingAlongTopNormal0.projected(onto: straightLeft).extended(by: state.thickness)
             let sideOuterTopUnderside0 = sideInnerTopUnderside0 + sidePaddingHorizontal0
             let sideInnerTopOverside0 = sideInnerTopUnderside0 + sideNormal.scaled(by: state.thickness)
             let sideOuterTopOverside0 = sideOuterTopUnderside0 + sideNormal.scaled(by: state.thickness)
 
-            let sideInnerTopUnderside1 = topUndersideEdge.vertex1 + relativePivotPoint + bendRotationDown.act(-relativePivotPoint)
+            let sideInnerTopUnderside1 = topUndersideEdge.vertex1 + relativePivotPoint + sideNormal.scaled(by: state.bendRadius) // bendRotationDown.act(-relativePivotPoint)
             let sidePaddingAlongTopNormal1 = prescaledPlane.edges[index].vertex1 - sideInnerTopUnderside1
 
             let sidePaddingHorizontal1 = sidePaddingAlongTopNormal1.projected(onto: straightLeft).extended(by: state.thickness).extended(by: -rightSidePadding)
@@ -202,27 +229,30 @@ struct FromSidesView: ShapeMaker {
             let insideBendAllowence = state.bendRadius * bendAngle
             let outsideBendAllowence = (state.bendRadius + state.thickness) * bendAngle
 
-            let rotatedUndersideSetback = edge.normal.scaled(by: insideBendAllowence)
-            let rotatedOversideSetback = edge.normal.scaled(by: outsideBendAllowence)
+            let backRotation = simd_slerp(.identity, bendRotationDown.inverse, state.angleSlerp)
+
+            let undersideBendAllowenceAlongPlane = edgeNormal.scaled(by: insideBendAllowence)
+            let oversideBendAllowenceAlongPlane = edgeNormal.scaled(by: outsideBendAllowence)
+
             let backrotatedPivotPoint = topUndersideEdge.vertex0 + relativePivotPoint
 
-            let sideInnerTopUnderside0Rotated = sideInnerTopUnderside0.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedUndersideSetback
-            let sideOuterTopUnderside0Rotated = sideOuterTopUnderside0.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedUndersideSetback
+            let sideInnerTopUnderside0Rotated = sideInnerTopUnderside0.rotated(by: backRotation, pivot: backrotatedPivotPoint) + undersideBendAllowenceAlongPlane
+            let sideOuterTopUnderside0Rotated = sideOuterTopUnderside0.rotated(by: backRotation, pivot: backrotatedPivotPoint) + undersideBendAllowenceAlongPlane
 
-            let sideInnerTopOverside0Rotated = sideInnerTopOverside0.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedOversideSetback
-            let sideOuterTopOverside0Rotated = sideOuterTopOverside0.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedOversideSetback
+            let sideInnerTopUnderside1Rotated = sideInnerTopUnderside1.rotated(by: backRotation, pivot: backrotatedPivotPoint) + undersideBendAllowenceAlongPlane
+            let sideOuterTopUnderside1Rotated = sideOuterTopUnderside1.rotated(by: backRotation, pivot: backrotatedPivotPoint) + undersideBendAllowenceAlongPlane
 
-            let sideInnerTopUnderside1Rotated = sideInnerTopUnderside1.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedUndersideSetback
-            let sideOuterTopUnderside1Rotated = sideOuterTopUnderside1.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedUndersideSetback
+            let sideOuterBottomUnderside0Rotated = sideOuterBottomUnderside0.rotated(by: backRotation, pivot: backrotatedPivotPoint) + undersideBendAllowenceAlongPlane
+            let sideOuterBottomUnderside1Rotated = sideOuterBottomUnderside1.rotated(by: backRotation, pivot: backrotatedPivotPoint) + undersideBendAllowenceAlongPlane
 
-            let sideInnerTopOverside1Rotated = sideInnerTopOverside1.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedOversideSetback
-            let sideOuterTopOverside1Rotated = sideOuterTopOverside1.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedOversideSetback
+            let sideOuterBottomOverside0Rotated = sideOuterBottomOverside0.rotated(by: backRotation, pivot: backrotatedPivotPoint) + oversideBendAllowenceAlongPlane
+            let sideOuterBottomOverside1Rotated = sideOuterBottomOverside1.rotated(by: backRotation, pivot: backrotatedPivotPoint) + oversideBendAllowenceAlongPlane
 
-            let sideOuterBottomUnderside0Rotated = sideOuterBottomUnderside0.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedUndersideSetback
-            let sideOuterBottomUnderside1Rotated = sideOuterBottomUnderside1.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedUndersideSetback
+            let sideInnerTopOverside0Rotated = sideInnerTopOverside0.rotated(by: backRotation, pivot: backrotatedPivotPoint) + oversideBendAllowenceAlongPlane
+            let sideOuterTopOverside0Rotated = sideOuterTopOverside0.rotated(by: backRotation, pivot: backrotatedPivotPoint) + oversideBendAllowenceAlongPlane
 
-            let sideOuterBottomOverside0Rotated = sideOuterBottomOverside0.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedOversideSetback
-            let sideOuterBottomOverside1Rotated = sideOuterBottomOverside1.rotated(by: bendRotationDown.inverse, pivot: backrotatedPivotPoint) + rotatedOversideSetback
+            let sideInnerTopOverside1Rotated = sideInnerTopOverside1.rotated(by: backRotation, pivot: backrotatedPivotPoint) + oversideBendAllowenceAlongPlane
+            let sideOuterTopOverside1Rotated = sideOuterTopOverside1.rotated(by: backRotation, pivot: backrotatedPivotPoint) + oversideBendAllowenceAlongPlane
 
             let lidUndersideCorner0Rotated = topUndersideEdge.vertex0
             let lidUndersideCorner1Rotated = topUndersideEdge.vertex1
@@ -234,58 +264,61 @@ struct FromSidesView: ShapeMaker {
                 LineSection(from: sideInnerTopUnderside0Rotated, to: sideOuterTopUnderside0Rotated)
                 LineSection(from: sideInnerTopUnderside1Rotated, to: sideOuterTopUnderside1Rotated)
 
-                Decoration(lineStyle: .dashed()) {
-                    LineSection(from: sideInnerTopUnderside0Rotated, to: sideInnerTopOverside0Rotated)
-                    LineSection(from: sideInnerTopUnderside1Rotated, to: sideInnerTopOverside1Rotated)
-                }
+                /*
+                 Decoration(lineStyle: .dashed()) {
+                     LineSection(from: sideInnerTopUnderside0Rotated, to: sideInnerTopOverside0Rotated)
+                     LineSection(from: sideInnerTopUnderside1Rotated, to: sideInnerTopOverside1Rotated)
+                 }
+                  */
 
-                LineSection(from: sideInnerTopOverside0Rotated, to: sideOuterTopOverside0Rotated)
-                LineSection(from: sideInnerTopOverside1Rotated, to: sideOuterTopOverside1Rotated)
+                // LineSection(from: sideInnerTopOverside0Rotated, to: sideOuterTopOverside0Rotated)
+                // LineSection(from: sideInnerTopOverside1Rotated, to: sideOuterTopOverside1Rotated)
 
-                LineSection(from: sideOuterTopUnderside0Rotated, to: sideOuterTopOverside0Rotated)
-                LineSection(from: sideOuterTopUnderside1Rotated, to: sideOuterTopOverside1Rotated)
+                // LineSection(from: sideOuterTopUnderside0Rotated, to: sideOuterTopOverside0Rotated)
+                // LineSection(from: sideOuterTopUnderside1Rotated, to: sideOuterTopOverside1Rotated)
 
                 LineSection(from: sideOuterTopUnderside0Rotated, to: sideOuterBottomUnderside0Rotated)
                 LineSection(from: sideOuterTopUnderside1Rotated, to: sideOuterBottomUnderside1Rotated)
 
-                LineSection(from: sideOuterTopOverside0Rotated, to: sideOuterBottomOverside0Rotated)
-                LineSection(from: sideOuterTopOverside1Rotated, to: sideOuterBottomOverside1Rotated)
+                // LineSection(from: sideOuterTopOverside0Rotated, to: sideOuterBottomOverside0Rotated)
+                // LineSection(from: sideOuterTopOverside1Rotated, to: sideOuterBottomOverside1Rotated)
 
-                LineSection(from: sideOuterBottomUnderside0Rotated, to: sideOuterBottomOverside0Rotated)
-                LineSection(from: sideOuterBottomUnderside1Rotated, to: sideOuterBottomOverside1Rotated)
+                // LineSection(from: sideOuterBottomUnderside0Rotated, to: sideOuterBottomOverside0Rotated)
+                // LineSection(from: sideOuterBottomUnderside1Rotated, to: sideOuterBottomOverside1Rotated)
 
                 LineSection(from: sideOuterBottomUnderside0Rotated, to: sideOuterBottomUnderside1Rotated)
-                LineSection(from: sideOuterBottomOverside0Rotated, to: sideOuterBottomOverside1Rotated)
+                // LineSection(from: sideOuterBottomOverside0Rotated, to: sideOuterBottomOverside1Rotated)
 
                 Decoration(lineStyle: .dashed()) {
-                    LineSection(from: lidOversideCorner0Rotated, to: lidUndersideCorner0Rotated)
-                    LineSection(from: lidOversideCorner1Rotated, to: lidUndersideCorner1Rotated)
+                    // LineSection(from: lidOversideCorner0Rotated, to: lidUndersideCorner0Rotated)
+                    // LineSection(from: lidOversideCorner1Rotated, to: lidUndersideCorner1Rotated)
 
-                    LineSection(from: lidOversideCorner0Rotated, to: lidOversideCorner1Rotated)
+                    // LineSection(from: lidOversideCorner0Rotated, to: lidOversideCorner1Rotated)
                     LineSection(from: lidUndersideCorner0Rotated, to: lidUndersideCorner1Rotated)
                 }
 
                 LineSection(from: lidUndersideCorner0Rotated, to: sideInnerTopUnderside0Rotated)
                 LineSection(from: lidUndersideCorner1Rotated, to: sideInnerTopUnderside1Rotated)
 
-                LineSection(from: lidOversideCorner0Rotated, to: sideInnerTopOverside0Rotated)
-                LineSection(from: lidOversideCorner1Rotated, to: sideInnerTopOverside1Rotated)
+                // LineSection(from: lidOversideCorner0Rotated, to: sideInnerTopOverside0Rotated)
+                // LineSection(from: lidOversideCorner1Rotated, to: sideInnerTopOverside1Rotated)
             }
             let projectionRotation = Quat(from: planeNormal, to: Vector(0, 0, 1))
             let sideInnerTopUnderside0Projected = sideInnerTopUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let sideOuterTopUnderside0Projected = sideOuterTopUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideInnerTopOverside0Projected = sideInnerTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterTopOverside0Projected = sideOuterTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let sideInnerTopUnderside1Projected = sideInnerTopUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let sideOuterTopUnderside1Projected = sideOuterTopUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideInnerTopOverside1Projected = sideInnerTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterTopOverside1Projected = sideOuterTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let sideOuterBottomUnderside0Projected = sideOuterBottomUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let sideOuterBottomUnderside1Projected = sideOuterBottomUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterBottomOverside0Projected = sideOuterBottomOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterBottomOverside1Projected = sideOuterBottomOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidUndersideCorner0Projected = lidUndersideCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidUndersideCorner1Projected = lidUndersideCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+
+            let sideInnerTopOverside0Projected = sideInnerTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+            let sideOuterTopOverside0Projected = sideOuterTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+            let sideInnerTopOverside1Projected = sideInnerTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+            let sideOuterTopOverside1Projected = sideOuterTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+            let sideOuterBottomOverside0Projected = sideOuterBottomOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+            let sideOuterBottomOverside1Projected = sideOuterBottomOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidOversideCorner0Projected = lidOversideCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidOversideCorner1Projected = lidOversideCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
 
@@ -293,42 +326,42 @@ struct FromSidesView: ShapeMaker {
                 LineSection(from: sideInnerTopUnderside0Projected, to: sideOuterTopUnderside0Projected)
                 LineSection(from: sideInnerTopUnderside1Projected, to: sideOuterTopUnderside1Projected)
 
-                //Decoration(lineStyle: .dashed()) {
-                 //   LineSection(from: sideInnerTopUnderside0Projected, to: sideInnerTopOverside0Projected)
+                // Decoration(lineStyle: .dashed()) {
+                //   LineSection(from: sideInnerTopUnderside0Projected, to: sideInnerTopOverside0Projected)
                 //    LineSection(from: sideInnerTopUnderside1Projected, to: sideInnerTopOverside1Projected)
-                //}
+                // }
 
-              //  LineSection(from: sideInnerTopOverside0Projected, to: sideOuterTopOverside0Projected)
-               // LineSection(from: sideInnerTopOverside1Projected, to: sideOuterTopOverside1Projected)
+                //  LineSection(from: sideInnerTopOverside0Projected, to: sideOuterTopOverside0Projected)
+                // LineSection(from: sideInnerTopOverside1Projected, to: sideOuterTopOverside1Projected)
 
-               // LineSection(from: sideOuterTopUnderside0Projected, to: sideOuterTopOverside0Projected)
-               // LineSection(from: sideOuterTopUnderside1Projected, to: sideOuterTopOverside1Projected)
+                // LineSection(from: sideOuterTopUnderside0Projected, to: sideOuterTopOverside0Projected)
+                // LineSection(from: sideOuterTopUnderside1Projected, to: sideOuterTopOverside1Projected)
 
                 LineSection(from: sideOuterTopUnderside0Projected, to: sideOuterBottomUnderside0Projected)
                 LineSection(from: sideOuterTopUnderside1Projected, to: sideOuterBottomUnderside1Projected)
 
-               // LineSection(from: sideOuterTopOverside0Projected, to: sideOuterBottomOverside0Projected)
-               // LineSection(from: sideOuterTopOverside1Projected, to: sideOuterBottomOverside1Projected)
+                // LineSection(from: sideOuterTopOverside0Projected, to: sideOuterBottomOverside0Projected)
+                // LineSection(from: sideOuterTopOverside1Projected, to: sideOuterBottomOverside1Projected)
 
-                //LineSection(from: sideOuterBottomUnderside0Projected, to: sideOuterBottomOverside0Projected)
-                //LineSection(from: sideOuterBottomUnderside1Projected, to: sideOuterBottomOverside1Projected)
+                // LineSection(from: sideOuterBottomUnderside0Projected, to: sideOuterBottomOverside0Projected)
+                // LineSection(from: sideOuterBottomUnderside1Projected, to: sideOuterBottomOverside1Projected)
 
                 LineSection(from: sideOuterBottomUnderside0Projected, to: sideOuterBottomUnderside1Projected)
-              //  LineSection(from: sideOuterBottomOverside0Projected, to: sideOuterBottomOverside1Projected)
+                //  LineSection(from: sideOuterBottomOverside0Projected, to: sideOuterBottomOverside1Projected)
 
                 Decoration(lineStyle: .dashed()) {
-                   // LineSection(from: lidOversideCorner0Projected, to: lidUndersideCorner0Projected)
-                  //  LineSection(from: lidOversideCorner1Projected, to: lidUndersideCorner1Projected)
+                    // LineSection(from: lidOversideCorner0Projected, to: lidUndersideCorner0Projected)
+                    //  LineSection(from: lidOversideCorner1Projected, to: lidUndersideCorner1Projected)
 
-                  //  LineSection(from: lidOversideCorner0Projected, to: lidOversideCorner1Projected)
+                    //  LineSection(from: lidOversideCorner0Projected, to: lidOversideCorner1Projected)
                     LineSection(from: lidUndersideCorner0Projected, to: lidUndersideCorner1Projected)
                 }
 
                 LineSection(from: lidUndersideCorner0Projected, to: sideInnerTopUnderside0Projected)
                 LineSection(from: lidUndersideCorner1Projected, to: sideInnerTopUnderside1Projected)
 
-                //LineSection(from: lidOversideCorner0Projected, to: sideInnerTopOverside0Projected)
-                //LineSection(from: lidOversideCorner1Projected, to: sideInnerTopOverside1Projected)
+                // LineSection(from: lidOversideCorner0Projected, to: sideInnerTopOverside0Projected)
+                // LineSection(from: lidOversideCorner1Projected, to: sideInnerTopOverside1Projected)
             }
         }
     }

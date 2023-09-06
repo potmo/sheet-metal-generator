@@ -47,6 +47,11 @@ struct SheetMetalGenerator: App {
                     DoubleSlider(label: "Height", value: $state.height, range: 0.0 ... 150.0)
                 }
 
+                HStack{
+                    DoubleSlider(label: "Angle Slerp", value: $state.angleSlerp, range: 0.0 ... 1.0)
+
+                }
+
                 HStack {
                     DoubleSlider(label: "Inner radius", value: $state.bendRadius, range: 0.0 ... 10.0)
                     DoubleSlider(label: "K-Factor", value: $state.kFactor, range: 0.0 ... 1.0)

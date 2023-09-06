@@ -10,6 +10,8 @@ class InputState: ObservableObject {
     @PublishedAppStorage("angle_around_x") var angleAroundX = 0.0
     @PublishedAppStorage("angle_around_y") var angleAroundY = 0.0
 
+    @PublishedAppStorage("angleSlerp") var angleSlerp = 0.0
+
     @PublishedAppStorage("cameraOrbit") var cameraOrbit = 0.0
     @PublishedAppStorage("cameraTilt") var cameraTilt = 0.0
     @PublishedAppStorage("cameraDollySide") var cameraDollySide = 0.0
