@@ -62,7 +62,7 @@ struct FromSidesView: ShapeMaker {
             $0.with(z: -state.height)
         }
 
-        Decoration(color: .clear, lineStyle: .bendDash) {
+        Decoration(color: .orange, lineStyle: .regularDash, hidden: true) {
             Polygon(vertices: innerOutline)
             Polygon(vertices: outsideOutline)
 
@@ -141,6 +141,23 @@ struct FromSidesView: ShapeMaker {
             .east.offsetted(by: setbackInTopPlane[1])
             .south.offsetted(by: setbackInTopPlane[2])
             .west.offsetted(by: setbackInTopPlane[3])
+
+        let yAxis = planeNormal.projected(ontoPlaneWithNormal: Vector(1, 0, 0))
+        let xAxis = planeNormal.projected(ontoPlaneWithNormal: Vector(0, 1, 0))
+
+/*
+         Decoration(color: .green) {
+             Arrow(vector: xAxis.scaled(by: 20), origo: Vector())
+
+             Arrow(vector: yAxis.scaled(by: 20), origo: Vector())
+
+             let yRot = Quat(from: planeNormal, to: xAxis)
+             let xRot = Quat(from: planeNormal, to: yAxis)
+             TextString(center: xAxis.scaled(by: 20), text: "x: \(xRot.angle.radiansToDegrees.toFixed(8))°", size: 12)
+             TextString(center: yAxis.scaled(by: 20), text: "y: \(yRot.angle.radiansToDegrees.toFixed(8))°", size: 12)
+         }
+        */
+
 
         for (index, edge) in prescaledPlane.edges.enumerated() {
             let bendAngle = bendAngles[index]
@@ -427,6 +444,10 @@ struct FromSidesView: ShapeMaker {
             let sideOuterBottomNeutral1Projected = sideOuterBottomNeutral1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidNeutralCorner0Projected = lidNeutralCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidNeutralCorner1Projected = lidNeutralCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+
+
+            TextString(center: sideOuterBottomNeutral0Projected + (sideOuterBottomNeutral1Projected - sideOuterBottomNeutral0Projected).scaled(by: 0.5),
+                       text: "\(bendRotationDown.angle.radiansToDegrees.toFixed(4))°", size: 12)
 
             Decoration(color: .purple, hidden: false) {
                 // top plane
