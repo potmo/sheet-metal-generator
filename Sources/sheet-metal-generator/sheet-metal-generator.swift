@@ -31,7 +31,7 @@ struct SheetMetalGenerator: App {
                         let staticCamera = StaticCamera(position: Vector(0, 0, 200),
                                                         rotation: Quat(angle: 0,
                                                                        axis: Vector(0, 0, 1)))
-
+                        
                         let renderTransform = OrthographicTransform(camera: staticCamera)
                         let context = RenderContext(canvasSize: Vector2D(1000, 1000),
                                                     renderTarget: svgTarget,
@@ -39,18 +39,24 @@ struct SheetMetalGenerator: App {
                                                     transform3d: renderTransform)
                         let shapes = maker.shapes(from: state)
                         shapes.forEach { $0.draw(in: context) }
-
+                        
                         print(svgTarget.svg)
                     }
+
+                    DoubleSlider(label: "Angle Slerp", value: $state.angleSlerp, range: 0.0 ... 1.0)
+                }
+
+                HStack {
                     DoubleSlider(label: "Thickness", value: $state.thickness, range: 0.0 ... 5.0)
                     DoubleSlider(label: "Size", value: $state.size, range: 0.0 ... 150.0)
+                }
+                HStack {
                     DoubleSlider(label: "Height", value: $state.height, range: 0.0 ... 150.0)
+                    DoubleSlider(label: "Gap scalar", value: $state.gapScalar, range: 1.0 ... 5.0)
                 }
 
-                HStack{
-                    DoubleSlider(label: "Angle Slerp", value: $state.angleSlerp, range: 0.0 ... 1.0)
 
-                }
+
 
                 HStack {
                     DoubleSlider(label: "Inner radius", value: $state.bendRadius, range: 0.0 ... 10.0)
