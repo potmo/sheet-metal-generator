@@ -531,80 +531,113 @@ struct FromSidesView: ShapeMaker {
                     //  Arrow(from: sideOuterBottomNeutral0Projected, to: sideOuterBottomNeutral1Projected)
                 }
 
+                let maxBits = 12 // max value 8191
+                // let number = min(6435, (1 << maxBits) - 1)
+                let number = 0b1111_1111_1111
+
+                // get the bits and then split the bits so its up-down for 0 and down up for 1
+                let upsAndDowns = (0 ... maxBits)
+                    .map { maxBits - $0 }
+                    .map { bit($0, of: number) }
+                // .flatMap { $0 ? [true, false] : [false, true] } // double so 1 bit is 10 and 0 is 01 so they dont fit oneanother
+
+                let start = sideOuterBottomNeutral0Projected
+                let end = sideOuterBottomNeutral1Projected
+
+                let firstBits = [false, true] + Array(upsAndDowns[0 ..< (upsAndDowns.count / 2)]) + [false]
+                let secondBits = [false] + Array(upsAndDowns[(upsAndDowns.count / 2) ..< upsAndDowns.count]) + [true, false]
+
+                let fullWidth = (end - start).length
+                let toothWidth = state.thickness * 2
+                let toothedWidth = Double(firstBits.count + secondBits.count) * toothWidth
+                let fastenerWidth = 5.0
+                let fastenerHieght = 5.0
+                let dir = (end - start).normalized
+                let perpDir = Vector(0, 0, 1).cross(dir)
+
+                // TODO: add these to the state instead
+                let toothClearence = 0.1
+                let toothReliefRadius = state.thickness * 0.25
+                let toothReliefDepth = state.thickness * 0.25
+
+                let fastenerStart = start + dir.scaled(by: fullWidth / 2 - fastenerWidth / 2 + toothClearence)
+                let fastenerEnd = start + dir.scaled(by: fullWidth / 2 + fastenerWidth / 2 - toothClearence)
+
                 CanvasRender.Path {
-                    let maxBits = 12 // max value 8191
-                    // let number = min(6435, (1 << maxBits) - 1)
-                    let number = 0b1100_0101_0011
+                    MoveTo(start)
 
-                    let start = sideOuterBottomNeutral0Projected
-                    let end = sideOuterBottomNeutral1Projected
-                    let right = (sideOuterBottomNeutral1Projected - sideOuterBottomNeutral0Projected).normalized
-                    let down = (sideOuterBottomNeutral0Projected - sideOuterTopNeutral0Projected).normalized
-                    let toothHeight = state.thickness
-                    let toothWidth = state.thickness * 2
-                    let toothDown = down.scaled(by: toothHeight)
+                    bitTooth(state: state, bits: firstBits, from: fastenerStart - dir.scaled(by: toothedWidth / 2), to: fastenerStart, planeNormal: [0, 0, 1])
 
-                    let toothReliefRadius = state.thickness * 0.25
-                    let toothReliefDepth = state.thickness * 0.25
+                    LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2))
+                    LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth))
+                    Orbit(pivot: fastenerStart - dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                          point: fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth),
+                          rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
 
-                    let toothClearence = 0.1
+                    // fastener
+                    LineTo(fastenerStart + perpDir.scaled(by: fastenerHieght))
+                    LineTo(fastenerEnd + perpDir.scaled(by: fastenerHieght))
 
-                    // get the bits and then split the bits so its up-down for 0 and down up for 1
-                    let leftPadding = [0, 1].map { $0 == 1 }
-                    let rightPadding = [1, 0].map { $0 == 1 }
-                    let upsAndDowns = (leftPadding +
-                        (0 ... maxBits)
-                        .map { maxBits - $0 }
-                        .map { bit($0, of: number) } +
-                        rightPadding)
-                    // .flatMap { $0 ? [true, false] : [false, true] } // double so 1 bit is 10 and 0 is 01 so they dont fit oneanother
+                    LineTo(fastenerEnd - perpDir.scaled(by: toothReliefDepth))
+                    Orbit(pivot: fastenerEnd + dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                          point: fastenerEnd - perpDir.scaled(by: toothReliefDepth),
+                          rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
 
-                    let toothedWidth = Double(upsAndDowns.count) * toothWidth
-                    let fullWidth = (end - start).length
-                    let emptyPadding = (end - start).normalized.scaled(by: fullWidth - toothedWidth) / 2
+                    LineTo(fastenerEnd + dir.scaled(by: toothReliefRadius * 2))
 
-                    MoveTo(start + emptyPadding)
+                    bitTooth(state: state, bits: secondBits, from: fastenerEnd, to: fastenerEnd + dir.scaled(by: toothedWidth / 2), planeNormal: [0, 0, 1])
 
-                    for (index, currentIsDown) in upsAndDowns.enumerated() {
-                        let nextIsDown = upsAndDowns.indices.contains(index + 1) ? upsAndDowns[index + 1] : false
-
-                        let endOffset = start + emptyPadding + right.scaled(by: toothWidth * Double(index + 1))
-
-                        switch (currentIsDown, nextIsDown) {
-                        case (false, true):
-                            // FIXME: Maybe add a radius on teeth
-                            LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2))
-                            LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth))
-                            Orbit(pivot: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius) - down.scaled(by: toothReliefDepth),
-                                  point: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth),
-                                  rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
-                            LineTo(endOffset + right.scaled(by: toothClearence) + toothDown)
-
-                        case (true, false):
-                            LineTo(endOffset - right.scaled(by: toothClearence) + toothDown)
-                            LineTo(endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth))
-                            Orbit(pivot: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth) + right.scaled(by: toothReliefRadius),
-                                  point: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth),
-                                  rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
-                            LineTo(endOffset - right.scaled(by: toothClearence) + right.scaled(by: toothReliefRadius * 2))
-
-                        case (true, true):
-                            Nothing()
-
-                        case (false, false):
-                            Nothing()
-                        }
-                    }
-
-                    LineTo(end - emptyPadding)
+                    LineTo(end)
                 }
             }
         }
     }
 
     @PathBuilder
-    private func bitTooth(bits: [Bool], from start: Vector, to end: Vector, planeNormal: Vector) -> [DrawableShape] {
+    private func bitTooth(state: InputState, bits: [Bool], from start: Vector, to end: Vector, planeNormal: Vector) -> [PartOfPath] {
+        let toothReliefRadius = state.thickness * 0.25
+        let toothReliefDepth = state.thickness * 0.25
+        let toothClearence = 0.1
+        let toothWidth = state.thickness * 2
+        let toothHeight = state.thickness
 
+        let right = (end - start).normalized
+        let down = planeNormal.cross(right)
+        let toothedWidth = Double(bits.count) * toothWidth
+        let fullWidth = (end - start).length
+        let emptyPadding = (end - start).normalized.scaled(by: fullWidth - toothedWidth) / 2
+        let toothDown = down.scaled(by: toothHeight)
+
+        for (index, currentIsDown) in bits.enumerated() {
+            let nextIsDown = bits.indices.contains(index + 1) ? bits[index + 1] : false
+
+            let endOffset = start + emptyPadding + right.scaled(by: toothWidth * Double(index + 1))
+
+            switch (currentIsDown, nextIsDown) {
+            case (false, true):
+                // FIXME: Maybe add a radius on teeth
+                LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2))
+                LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth))
+                Orbit(pivot: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius) - down.scaled(by: toothReliefDepth),
+                      point: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth),
+                      rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
+                LineTo(endOffset + right.scaled(by: toothClearence) + toothDown)
+
+            case (true, false):
+                LineTo(endOffset - right.scaled(by: toothClearence) + toothDown)
+                LineTo(endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth))
+                Orbit(pivot: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth) + right.scaled(by: toothReliefRadius),
+                      point: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth),
+                      rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
+                LineTo(endOffset - right.scaled(by: toothClearence) + right.scaled(by: toothReliefRadius * 2))
+
+            case (true, true):
+                Nothing()
+
+            case (false, false):
+                Nothing()
+            }
+        }
     }
 
     private func bit(_ n: Int, of num: Int) -> Bool {
