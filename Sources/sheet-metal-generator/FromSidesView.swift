@@ -476,7 +476,8 @@ struct FromSidesView: ShapeMaker {
                 let right = (lidNeutralCorner1Projected - lidNeutralCorner0Projected).normalized
                 let tabSize = 2.0
                 // left radius
-                Orbit(pivot: bendAllowanceCutout0, point: sideInnerTopNeutral0Projected, rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
+                Orbit(pivot: bendAllowanceCutout0, point: sideInnerTopNeutral0Projected,
+                      rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
                       spokes: false)
                 Orbit(pivot: bendAllowanceCutout0 + right.scaled(by: tabSize + radius * 2),
                       point: bendAllowanceCutout0 + halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
@@ -490,10 +491,12 @@ struct FromSidesView: ShapeMaker {
 
                 // mid radius
                 Orbit(pivot: bendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
-                      point: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius), rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
+                      point: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                      rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
                       spokes: false)
                 Orbit(pivot: bendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
-                      point: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius), rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
+                      point: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
+                      rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
                       spokes: false)
 
                 LineSection(from: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
@@ -507,7 +510,8 @@ struct FromSidesView: ShapeMaker {
                       rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
                       spokes: false)
                 Orbit(pivot: bendAllowanceCutout1 - right.scaled(by: tabSize + radius * 2),
-                      point: bendAllowanceCutout1 + halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2), rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
+                      point: bendAllowanceCutout1 + halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2),
+                      rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
                       spokes: false)
 
                 // bend allowance bend line
@@ -533,7 +537,9 @@ struct FromSidesView: ShapeMaker {
 
                 let maxBits = 12 // max value 8191
                 // let number = min(6435, (1 << maxBits) - 1)
-                let number = 0b1111_1111_1111
+
+                // just use the aligning bits for all sides but one
+                let number = index == 0 ? 0b1111_1010_1010 : 0b0000_0000_0000
 
                 // get the bits and then split the bits so its up-down for 0 and down up for 1
                 let upsAndDowns = (0 ... maxBits)
@@ -550,8 +556,8 @@ struct FromSidesView: ShapeMaker {
                 let fullWidth = (end - start).length
                 let toothWidth = state.thickness * 2
                 let toothedWidth = Double(firstBits.count + secondBits.count) * toothWidth
-                let fastenerWidth = 5.0
-                let fastenerHieght = 5.0
+                let fastenerWidth = 8.0
+                let fastenerHieght = state.thickness
                 let dir = (end - start).normalized
                 let perpDir = Vector(0, 0, 1).cross(dir)
 
@@ -559,9 +565,49 @@ struct FromSidesView: ShapeMaker {
                 let toothClearence = 0.1
                 let toothReliefRadius = state.thickness * 0.25
                 let toothReliefDepth = state.thickness * 0.25
+                let lockKeyWidth = state.thickness * 4
 
                 let fastenerStart = start + dir.scaled(by: fullWidth / 2 - fastenerWidth / 2 + toothClearence)
                 let fastenerEnd = start + dir.scaled(by: fullWidth / 2 + fastenerWidth / 2 - toothClearence)
+                let fastenerMid = fastenerStart + (fastenerEnd - fastenerStart).scaled(by: 0.5) + perpDir.scaled(by: fastenerHieght)
+
+                let holeCorners: [Vector] = [
+                    fastenerMid + perpDir.scaled(by: toothClearence) - dir.scaled(by: lockKeyWidth / 2 + toothClearence),
+                    fastenerMid + perpDir.scaled(by: toothClearence) + dir.scaled(by: lockKeyWidth / 2 + toothClearence),
+                    fastenerMid + perpDir.scaled(by: toothClearence + state.thickness + toothClearence) + dir.scaled(by: lockKeyWidth / 2 + toothClearence),
+                    fastenerMid + perpDir.scaled(by: toothClearence + state.thickness + toothClearence) - dir.scaled(by: lockKeyWidth / 2 + toothClearence),
+                ]
+                CanvasRender.Path(closed: true) {
+
+                    MoveTo(holeCorners[0] + perpDir.scaled(by: toothReliefRadius))
+                    
+                    // hole in fastener
+                    AxisOrbit(pivot: holeCorners[0],
+                              point: holeCorners[0] + perpDir.scaled(by: toothReliefRadius),
+                              angle: .pi * 1.5,
+                              axis: Vector(0, 0, 1))
+
+                    LineTo(holeCorners[1] - dir.scaled(by: toothReliefRadius))
+
+                    AxisOrbit(pivot: holeCorners[1],
+                              point: holeCorners[1] - dir.scaled(by: toothReliefRadius),
+                              angle: .pi * 1.5,
+                              axis: Vector(0, 0, 1))
+
+                    LineTo(holeCorners[2] - perpDir.scaled(by: toothReliefRadius))
+
+                    AxisOrbit(pivot: holeCorners[2],
+                              point: holeCorners[2] - perpDir.scaled(by: toothReliefRadius),
+                              angle: .pi * 1.5,
+                              axis: Vector(0, 0, 1))
+
+                    LineTo(holeCorners[3] + dir.scaled(by: toothReliefRadius))
+
+                    AxisOrbit(pivot: holeCorners[3],
+                              point: holeCorners[3] + dir.scaled(by: toothReliefRadius),
+                              angle: .pi * 1.5,
+                              axis: Vector(0, 0, 1))
+                }
 
                 CanvasRender.Path {
                     MoveTo(start)
@@ -575,8 +621,15 @@ struct FromSidesView: ShapeMaker {
                           rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
 
                     // fastener
+                    LineTo(fastenerStart)
                     LineTo(fastenerStart + perpDir.scaled(by: fastenerHieght))
+
+                    Orbit(pivot: fastenerMid,
+                          point: fastenerStart + perpDir.scaled(by: fastenerHieght),
+                          rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)))
+
                     LineTo(fastenerEnd + perpDir.scaled(by: fastenerHieght))
+                    LineTo(fastenerEnd)
 
                     LineTo(fastenerEnd - perpDir.scaled(by: toothReliefDepth))
                     Orbit(pivot: fastenerEnd + dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
@@ -608,6 +661,8 @@ struct FromSidesView: ShapeMaker {
         let emptyPadding = (end - start).normalized.scaled(by: fullWidth - toothedWidth) / 2
         let toothDown = down.scaled(by: toothHeight)
 
+        let toothRadius = toothWidth / 2.0 - toothClearence
+
         for (index, currentIsDown) in bits.enumerated() {
             let nextIsDown = bits.indices.contains(index + 1) ? bits[index + 1] : false
 
@@ -622,9 +677,17 @@ struct FromSidesView: ShapeMaker {
                       point: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth),
                       rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
                 LineTo(endOffset + right.scaled(by: toothClearence) + toothDown)
+                Orbit(pivot: endOffset + right.scaled(by: toothClearence) + toothDown + right.scaled(by: toothRadius),
+                      point: endOffset + right.scaled(by: toothClearence) + toothDown,
+                      rotation: Quat(angle: -.pi * 0.5, axis: Vector(0, 0, 1)))
 
             case (true, false):
-                LineTo(endOffset - right.scaled(by: toothClearence) + toothDown)
+                LineTo(endOffset - right.scaled(by: toothClearence) + toothDown - right.scaled(by: toothRadius) + down.scaled(by: toothRadius))
+
+                Orbit(pivot: endOffset - right.scaled(by: toothClearence) + toothDown - right.scaled(by: toothRadius),
+                      point: endOffset - right.scaled(by: toothClearence) + toothDown - right.scaled(by: toothRadius) + down.scaled(by: toothRadius),
+                      rotation: Quat(angle: -.pi * 0.5, axis: Vector(0, 0, 1)))
+
                 LineTo(endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth))
                 Orbit(pivot: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth) + right.scaled(by: toothReliefRadius),
                       point: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth),
