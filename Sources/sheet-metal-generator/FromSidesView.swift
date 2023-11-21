@@ -209,7 +209,7 @@ struct FromSidesView: ShapeMaker {
             let sideOuterBottomNeutral0 = sideOuterBottomUnderside0 + sideNormal.scaled(by: state.thickness * state.kFactor)
             let sideOuterBottomNeutral1 = sideOuterBottomUnderside1 + sideNormal.scaled(by: state.thickness * state.kFactor)
 
-            Decoration(color: .red, hidden: true) {
+            Decoration(color: .red, hidden: !state.showFolded) {
                 // top plane
                 Decoration(lineStyle: .bendDash) {
                     LineSection(from: topUndersideEdge.vertex0,
@@ -357,7 +357,7 @@ struct FromSidesView: ShapeMaker {
             let lidNeutralCorner0Rotated = topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness * state.kFactor)
             let lidNeutralCorner1Rotated = topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness * state.kFactor)
 
-            Decoration(color: .blue, hidden: true) {
+            Decoration(color: .blue, hidden: !state.showTopAlignedFlatView) {
                 // top plane
                 Decoration(lineStyle: .bendDash) {
                     LineSection(from: lidUndersideCorner0Rotated, to: lidUndersideCorner1Rotated)
@@ -415,23 +415,23 @@ struct FromSidesView: ShapeMaker {
             }
             let projectionRotation = Quat(from: planeNormal, to: Vector(0, 0, 1))
 
-            let sideInnerTopUnderside0Projected = sideInnerTopUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterTopUnderside0Projected = sideOuterTopUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideInnerTopUnderside1Projected = sideInnerTopUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterTopUnderside1Projected = sideOuterTopUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterBottomUnderside0Projected = sideOuterBottomUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterBottomUnderside1Projected = sideOuterBottomUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let lidUndersideCorner0Projected = lidUndersideCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let lidUndersideCorner1Projected = lidUndersideCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideInnerTopUnderside0Projected = sideInnerTopUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterTopUnderside0Projected = sideOuterTopUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideInnerTopUnderside1Projected = sideInnerTopUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterTopUnderside1Projected = sideOuterTopUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterBottomUnderside0Projected = sideOuterBottomUnderside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterBottomUnderside1Projected = sideOuterBottomUnderside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let lidUndersideCorner0Projected = lidUndersideCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let lidUndersideCorner1Projected = lidUndersideCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
 
-            let sideInnerTopOverside0Projected = sideInnerTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterTopOverside0Projected = sideOuterTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideInnerTopOverside1Projected = sideInnerTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterTopOverside1Projected = sideOuterTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterBottomOverside0Projected = sideOuterBottomOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let sideOuterBottomOverside1Projected = sideOuterBottomOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let lidOversideCorner0Projected = lidOversideCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
-            let lidOversideCorner1Projected = lidOversideCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideInnerTopOverside0Projected = sideInnerTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterTopOverside0Projected = sideOuterTopOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideInnerTopOverside1Projected = sideInnerTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterTopOverside1Projected = sideOuterTopOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterBottomOverside0Projected = sideOuterBottomOverside0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let sideOuterBottomOverside1Projected = sideOuterBottomOverside1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let lidOversideCorner0Projected = lidOversideCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
+//            let lidOversideCorner1Projected = lidOversideCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
 
             let sideInnerTopNeutral0Projected = sideInnerTopNeutral0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let sideOuterTopNeutral0Projected = sideOuterTopNeutral0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
@@ -442,17 +442,20 @@ struct FromSidesView: ShapeMaker {
             let lidNeutralCorner0Projected = lidNeutralCorner0Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
             let lidNeutralCorner1Projected = lidNeutralCorner1Rotated.rotated(by: projectionRotation, pivot: Vector(0, 0, 0))
 
-            let bendAllowenceMid0 = lidNeutralCorner0Projected + (sideInnerTopNeutral0Projected - lidNeutralCorner0Projected) * 0.5
-            let bendAllowenceMid1 = lidNeutralCorner1Projected + (sideInnerTopNeutral1Projected - lidNeutralCorner1Projected) * 0.5
+//            let bendAllowenceMid0 = lidNeutralCorner0Projected + (sideInnerTopNeutral0Projected - lidNeutralCorner0Projected) * 0.5
+//            let bendAllowenceMid1 = lidNeutralCorner1Projected + (sideInnerTopNeutral1Projected - lidNeutralCorner1Projected) * 0.5
 
-            TextString(center: sideOuterBottomNeutral0Projected + (sideOuterBottomNeutral1Projected - sideOuterBottomNeutral0Projected).scaled(by: 0.5),
-                       text: "\(bendRotationDown.angle.radiansToDegrees.toFixed(4))°", size: 12)
+            Decoration(color: .black, hidden: !state.showHorizontalFlatView) {
+                TextString(center: sideOuterBottomNeutral0Projected + (sideOuterBottomNeutral1Projected - sideOuterBottomNeutral0Projected).scaled(by: 0.5),
+                           text: "\(bendRotationDown.angle.radiansToDegrees.toFixed(4))°", size: 12)
 
-            Decoration(hidden: false) {
                 // top plane
-                Decoration(lineStyle: .bendDash) {
-                    LineSection(from: lidNeutralCorner0Projected, to: lidNeutralCorner1Projected)
-                }
+
+                /*
+                  Decoration(lineStyle: .bendDash) {
+                     LineSection(from: lidNeutralCorner0Projected, to: lidNeutralCorner1Projected)
+                 }
+                  */
 
                 /*
                  Decoration(color: .blue) {
@@ -463,18 +466,59 @@ struct FromSidesView: ShapeMaker {
                      Arrow(vector: rotation.axis.scaled(by: 5), origo: bendAllowenceMid0)
                      Orbit(pivot: bendAllowenceMid0, point: lidNeutralCorner0Projected, rotation: rotation, spokes: true)
                  }
-                  */
+                 */
 
-                // bend allowance
-                LineSection(from: lidNeutralCorner0Projected, to: sideInnerTopNeutral0Projected)
-                LineSection(from: lidNeutralCorner1Projected, to: sideInnerTopNeutral1Projected)
+                let halfBendAllowanceMid = (sideInnerTopNeutral0Projected - lidNeutralCorner0Projected).scaled(by: 0.5)
+                let radius = halfBendAllowanceMid.length
+                let bendAllowanceCutout0 = lidNeutralCorner0Projected + halfBendAllowanceMid
+                let bendAllowanceCutout1 = lidNeutralCorner1Projected + halfBendAllowanceMid
+                let bendAllowanceMid = lidNeutralCorner1Projected + (lidNeutralCorner0Projected - lidNeutralCorner1Projected).scaled(by: 0.5) + halfBendAllowanceMid
+                let right = (lidNeutralCorner1Projected - lidNeutralCorner0Projected).normalized
+                let tabSize = 2.0
+                // left radius
+                Orbit(pivot: bendAllowanceCutout0, point: sideInnerTopNeutral0Projected, rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
+                      spokes: false)
+                Orbit(pivot: bendAllowanceCutout0 + right.scaled(by: tabSize + radius * 2),
+                      point: bendAllowanceCutout0 + halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
+                      rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
+                      spokes: false)
+
+                LineSection(from: bendAllowanceCutout0 + halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
+                            to: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius))
+                LineSection(from: bendAllowanceCutout0 - halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
+                            to: bendAllowanceMid - halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius))
+
+                // mid radius
+                Orbit(pivot: bendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                      point: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius), rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
+                      spokes: false)
+                Orbit(pivot: bendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
+                      point: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius), rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
+                      spokes: false)
+
+                LineSection(from: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                            to: bendAllowanceCutout1 + halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2))
+                LineSection(from: bendAllowanceMid - halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                            to: bendAllowanceCutout1 - halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2))
+
+                // right view
+                Orbit(pivot: bendAllowanceCutout1,
+                      point: sideInnerTopNeutral1Projected,
+                      rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
+                      spokes: false)
+                Orbit(pivot: bendAllowanceCutout1 - right.scaled(by: tabSize + radius * 2),
+                      point: bendAllowanceCutout1 + halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2), rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
+                      spokes: false)
 
                 // bend allowance bend line
-                Decoration(lineStyle: .bendDash) {
-                    LineSection(from: sideInnerTopNeutral0Projected, to: sideInnerTopNeutral1Projected)
-                }
+                /*
+                 Decoration(lineStyle: .bendDash) {
+                     LineSection(from: sideInnerTopNeutral0Projected, to: sideInnerTopNeutral1Projected)
+                 }
+                  */
 
                 // side extensions
+
                 LineSection(from: sideInnerTopNeutral0Projected, to: sideOuterTopNeutral0Projected)
                 LineSection(from: sideInnerTopNeutral1Projected, to: sideOuterTopNeutral1Projected)
 
@@ -483,8 +527,87 @@ struct FromSidesView: ShapeMaker {
                 LineSection(from: sideOuterTopNeutral1Projected, to: sideOuterBottomNeutral1Projected)
 
                 // bottom edge
-                LineSection(from: sideOuterBottomNeutral0Projected, to: sideOuterBottomNeutral1Projected)
+                Decoration(color: .red) {
+                    //  Arrow(from: sideOuterBottomNeutral0Projected, to: sideOuterBottomNeutral1Projected)
+                }
+
+                CanvasRender.Path {
+                    let maxBits = 12 // max value 8191
+                    // let number = min(6435, (1 << maxBits) - 1)
+                    let number = 0b1100_0101_0011
+
+                    let start = sideOuterBottomNeutral0Projected
+                    let end = sideOuterBottomNeutral1Projected
+                    let right = (sideOuterBottomNeutral1Projected - sideOuterBottomNeutral0Projected).normalized
+                    let down = (sideOuterBottomNeutral0Projected - sideOuterTopNeutral0Projected).normalized
+                    let toothHeight = state.thickness
+                    let toothWidth = state.thickness * 2
+                    let toothDown = down.scaled(by: toothHeight)
+
+                    let toothReliefRadius = state.thickness * 0.25
+                    let toothReliefDepth = state.thickness * 0.25
+
+                    let toothClearence = 0.1
+
+                    // get the bits and then split the bits so its up-down for 0 and down up for 1
+                    let leftPadding = [0, 1].map { $0 == 1 }
+                    let rightPadding = [1, 0].map { $0 == 1 }
+                    let upsAndDowns = (leftPadding +
+                        (0 ... maxBits)
+                        .map { maxBits - $0 }
+                        .map { bit($0, of: number) } +
+                        rightPadding)
+                    // .flatMap { $0 ? [true, false] : [false, true] } // double so 1 bit is 10 and 0 is 01 so they dont fit oneanother
+
+                    let toothedWidth = Double(upsAndDowns.count) * toothWidth
+                    let fullWidth = (end - start).length
+                    let emptyPadding = (end - start).normalized.scaled(by: fullWidth - toothedWidth) / 2
+
+                    MoveTo(start + emptyPadding)
+
+                    for (index, currentIsDown) in upsAndDowns.enumerated() {
+                        let nextIsDown = upsAndDowns.indices.contains(index + 1) ? upsAndDowns[index + 1] : false
+
+                        let endOffset = start + emptyPadding + right.scaled(by: toothWidth * Double(index + 1))
+
+                        switch (currentIsDown, nextIsDown) {
+                        case (false, true):
+                            // FIXME: Maybe add a radius on teeth
+                            LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2))
+                            LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth))
+                            Orbit(pivot: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius) - down.scaled(by: toothReliefDepth),
+                                  point: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth),
+                                  rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
+                            LineTo(endOffset + right.scaled(by: toothClearence) + toothDown)
+
+                        case (true, false):
+                            LineTo(endOffset - right.scaled(by: toothClearence) + toothDown)
+                            LineTo(endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth))
+                            Orbit(pivot: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth) + right.scaled(by: toothReliefRadius),
+                                  point: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth),
+                                  rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
+                            LineTo(endOffset - right.scaled(by: toothClearence) + right.scaled(by: toothReliefRadius * 2))
+
+                        case (true, true):
+                            Nothing()
+
+                        case (false, false):
+                            Nothing()
+                        }
+                    }
+
+                    LineTo(end - emptyPadding)
+                }
             }
         }
+    }
+
+    @PathBuilder
+    private func bitTooth(bits: [Bool], from start: Vector, to end: Vector, planeNormal: Vector) -> [DrawableShape] {
+
+    }
+
+    private func bit(_ n: Int, of num: Int) -> Bool {
+        return (num >> n) & 1 == 1
     }
 }
