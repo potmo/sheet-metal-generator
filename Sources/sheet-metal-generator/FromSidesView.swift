@@ -13,20 +13,22 @@ struct FromSidesView: ShapeMaker {
     func shapes(from state: InputState) -> [DrawableShape] {
         // LineSection(from: Vector(), to: Vector(100, 0, 0))
 
-        Decoration(color: .cyan) {
-            Circle(center: [0, 0, 0], radius: 3)
-        }
-
-        Decoration(color: .red) {
-            Arrow(vector: [3, 0, 0], origo: [0, 0, 0])
-        }
-
-        Decoration(color: .green) {
-            Arrow(vector: [0, 3, 0], origo: [0, 0, 0])
-        }
-
-        Decoration(color: .blue) {
-            Arrow(vector: [0, 0, 3], origo: [0, 0, 0])
+        Decoration(hidden: true) {
+            Decoration(color: .cyan) {
+                Circle(center: [0, 0, 0], radius: 3)
+            }
+            
+            Decoration(color: .red) {
+                Arrow(vector: [3, 0, 0], origo: [0, 0, 0])
+            }
+            
+            Decoration(color: .green) {
+                Arrow(vector: [0, 3, 0], origo: [0, 0, 0])
+            }
+            
+            Decoration(color: .blue) {
+                Arrow(vector: [0, 0, 3], origo: [0, 0, 0])
+            }
         }
 
         let xAxisRotation = Quat(angle: state.angleAroundX.degreesToRadians, axis: Vector(1, 0, 0))
@@ -561,6 +563,16 @@ struct FromSidesView: ShapeMaker {
                 let dir = (end - start).normalized
                 let perpDir = Vector(0, 0, 1).cross(dir)
 
+                if index == 0 {
+                    Decoration(color: .yellow) {
+                        StrokeNumber(number: 1_234_567_890,
+                                     topCorner: sideOuterBottomNeutral0Projected + dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0),
+                                     sideDirection: dir,
+                                     downDirection: perpDir,
+                                     scale: 3.0)
+                    }
+                }
+
                 // TODO: add these to the state instead
                 let toothClearence = 0.1
                 let toothReliefRadius = state.thickness * 0.25
@@ -578,9 +590,8 @@ struct FromSidesView: ShapeMaker {
                     fastenerMid + perpDir.scaled(by: toothClearence + state.thickness + toothClearence) - dir.scaled(by: lockKeyWidth / 2 + toothClearence),
                 ]
                 CanvasRender.Path(closed: true) {
-
                     MoveTo(holeCorners[0] + perpDir.scaled(by: toothReliefRadius))
-                    
+
                     // hole in fastener
                     AxisOrbit(pivot: holeCorners[0],
                               point: holeCorners[0] + perpDir.scaled(by: toothReliefRadius),

@@ -41,6 +41,24 @@ struct SheetMetalGenerator: App {
                 print(svgTarget.svg)
             }
 
+            Button("DXF") {
+                let dxfTarget = DXFRenderTarget()
+                let maker = FromSidesView()
+                let staticCamera = StaticCamera(position: Vector(0, 0, 200),
+                                                rotation: Quat(angle: 0,
+                                                               axis: Vector(0, 0, 1)))
+
+                let renderTransform = OrthographicTransform(camera: staticCamera)
+                let context = RenderContext(canvasSize: Vector2D(1000, 1000),
+                                            renderTarget: dxfTarget,
+                                            transform2d: CGAffineTransform(scaleX: 1, y: -1),
+                                            transform3d: renderTransform)
+                let shapes = maker.shapes(from: state)
+                shapes.forEach { $0.draw(in: context) }
+
+                print(dxfTarget.dxf)
+            }
+
             DoubleSlider(label: "Angle Slerp", value: $state.angleSlerp, range: 0.0 ... 1.0)
             Toggle(isOn: $state.showHorizontalFlatView) { Text("Horizontal") }
             Toggle(isOn: $state.showTopAlignedFlatView) { Text("Foldout") }
@@ -84,7 +102,7 @@ struct SheetMetalGenerator: App {
             if state.show3dView {
                 CanvasView(state: state, maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StateObjectCamera(state: state)))
-            }else{
+            } else {
                 CanvasView(state: state,
                            maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
@@ -137,7 +155,7 @@ struct SheetMetalGenerator: App {
 
     var body: some Scene {
         WindowGroup {
-            Group{
+            Group {
                 if state.fullScreenTop {
                     singleView
                 } else {
@@ -145,7 +163,6 @@ struct SheetMetalGenerator: App {
                 }
             }
             .background(.white)
-
         }
     }
 }
