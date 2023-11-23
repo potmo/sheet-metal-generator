@@ -17,15 +17,15 @@ struct FromSidesView: ShapeMaker {
             Decoration(color: .cyan) {
                 Circle(center: [0, 0, 0], radius: 3)
             }
-            
+
             Decoration(color: .red) {
                 Arrow(vector: [3, 0, 0], origo: [0, 0, 0])
             }
-            
+
             Decoration(color: .green) {
                 Arrow(vector: [0, 3, 0], origo: [0, 0, 0])
             }
-            
+
             Decoration(color: .blue) {
                 Arrow(vector: [0, 0, 3], origo: [0, 0, 0])
             }
@@ -517,12 +517,11 @@ struct FromSidesView: ShapeMaker {
                       spokes: false)
 
                 // bend allowance bend line
-                /*
-                 Decoration(lineStyle: .bendDash) {
-                     LineSection(from: sideInnerTopNeutral0Projected, to: sideInnerTopNeutral1Projected)
-                 }
-                  */
 
+                Decoration(color: .red, lineStyle: .bendDash) {
+                    LineSection(from: sideInnerTopNeutral0Projected, to: sideInnerTopNeutral1Projected)
+                }
+                
                 // side extensions
 
                 LineSection(from: sideInnerTopNeutral0Projected, to: sideOuterTopNeutral0Projected)
@@ -681,7 +680,6 @@ struct FromSidesView: ShapeMaker {
 
             switch (currentIsDown, nextIsDown) {
             case (false, true):
-                // FIXME: Maybe add a radius on teeth
                 LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2))
                 LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth))
                 Orbit(pivot: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius) - down.scaled(by: toothReliefDepth),
