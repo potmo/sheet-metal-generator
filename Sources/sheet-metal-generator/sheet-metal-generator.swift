@@ -51,7 +51,7 @@ struct SheetMetalGenerator: App {
                 let renderTransform = OrthographicTransform(camera: staticCamera)
                 let context = RenderContext(canvasSize: Vector2D(1000, 1000),
                                             renderTarget: dxfTarget,
-                                            transform2d: CGAffineTransform(scaleX: 1, y: -1),
+                                            transform2d: CGAffineTransform(scaleX: 1, y: 1),
                                             transform3d: renderTransform)
                 let shapes = maker.shapes(from: state)
                 shapes.forEach { $0.draw(in: context) }
@@ -100,13 +100,14 @@ struct SheetMetalGenerator: App {
         }
         VStack {
             if state.show3dView {
-                CanvasView(state: state, maker: FromSidesView(),
+                CanvasView(state: state,
+                           maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StateObjectCamera(state: state)))
             } else {
                 CanvasView(state: state,
                            maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
-                                                                                       rotation: Quat(angle: .pi,
+                                                                                       rotation: Quat(angle: 0,
                                                                                                       axis: Vector(1, 0, 0)))))
             }
         }
@@ -126,7 +127,7 @@ struct SheetMetalGenerator: App {
                 CanvasView(state: state,
                            maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
-                                                                                       rotation: Quat(angle: .pi,
+                                                                                       rotation: Quat(angle: 0,
                                                                                                       axis: Vector(1, 0, 0)))))
 
                 let cameraOrbit = Quat(angle: 0, axis: Vector(0, 0, 1))

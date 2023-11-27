@@ -13,7 +13,7 @@ struct FromSidesView: ShapeMaker {
     func shapes(from state: InputState) -> [DrawableShape] {
         // LineSection(from: Vector(), to: Vector(100, 0, 0))
 
-        Decoration(hidden: true) {
+        Decoration(hidden: false) {
             Decoration(color: .cyan) {
                 Circle(center: [0, 0, 0], radius: 3)
             }
@@ -540,12 +540,15 @@ struct FromSidesView: ShapeMaker {
                 // let number = min(6435, (1 << maxBits) - 1)
 
                 // just use the aligning bits for all sides but one
-                let number = index == 0 ? 0b1111_1010_1010 : 0b0000_0000_0000
+                let number = index == 0 ? 0b1111_1100_0000 : 0b0000_0000_0000
 
                 // get the bits and then split the bits so its up-down for 0 and down up for 1
                 let upsAndDowns = (0 ... maxBits)
                     .map { maxBits - $0 }
                     .map { bit($0, of: number) }
+                    .reversed()
+                    .map{$0}
+
                 // .flatMap { $0 ? [true, false] : [false, true] } // double so 1 bit is 10 and 0 is 01 so they dont fit oneanother
 
                 let start = sideOuterBottomNeutral0Projected
@@ -565,8 +568,8 @@ struct FromSidesView: ShapeMaker {
                 if index == 0 {
                     Decoration(color: .yellow) {
                         StrokeNumber(number: 1_234_567_890,
-                                     topCorner: sideOuterBottomNeutral0Projected + dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0),
-                                     sideDirection: dir,
+                                     topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0),
+                                     sideDirection: -dir,
                                      downDirection: perpDir,
                                      scale: 3.0)
                     }
