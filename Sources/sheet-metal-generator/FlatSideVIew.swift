@@ -10,7 +10,9 @@ struct FlatSideView: ShapeMaker {
     typealias StateType = InputState
 
     @CanvasBuilder
-    func shapes(from state: InputState) -> [DrawableShape] {
+    func shapes(from state: StateType) -> [DrawableShape] {
+        let state = state.frozen
+        
         Decoration(color: .cyan) {
             Circle(center: [0, 0, 0], radius: 3)
         }

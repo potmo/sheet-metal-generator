@@ -13,6 +13,8 @@ struct SideView: ShapeMaker {
 
     @CanvasBuilder
     func shapes(from state: InputState) -> [DrawableShape] {
+        let state = state.frozen
+
         Decoration(color: .cyan) {
             Circle(center: [0, 0, 0], radius: 3)
         }

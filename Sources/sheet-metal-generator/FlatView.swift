@@ -13,6 +13,7 @@ struct FlatView: ShapeMaker {
 
     @CanvasBuilder
     func shapes(from state: InputState) -> [DrawableShape] {
+        let state = state.frozen
         Decoration(color: .red) {
             Arrow(vector: [3, 0, 0], origo: [0, 0, 0])
         }

@@ -10,10 +10,10 @@ struct FromSidesView: ShapeMaker {
     typealias StateType = InputState
 
     @CanvasBuilder
-    func shapes(from state: InputState) -> [DrawableShape] {
+    func shapes(from state: StateType) -> [DrawableShape] {
         // LineSection(from: Vector(), to: Vector(100, 0, 0))
-
-        Decoration(hidden: false) {
+        let state = state.frozen
+        Decoration(hidden: true) {
             Decoration(color: .cyan) {
                 Circle(center: [0, 0, 0], radius: 3)
             }
@@ -521,7 +521,7 @@ struct FromSidesView: ShapeMaker {
                 Decoration(color: .red, lineStyle: .bendDash) {
                     LineSection(from: sideInnerTopNeutral0Projected, to: sideInnerTopNeutral1Projected)
                 }
-                
+
                 // side extensions
 
                 LineSection(from: sideInnerTopNeutral0Projected, to: sideOuterTopNeutral0Projected)
@@ -547,7 +547,7 @@ struct FromSidesView: ShapeMaker {
                     .map { maxBits - $0 }
                     .map { bit($0, of: number) }
                     .reversed()
-                    .map{$0}
+                    .map { $0 }
 
                 // .flatMap { $0 ? [true, false] : [false, true] } // double so 1 bit is 10 and 0 is 01 so they dont fit oneanother
 
@@ -591,7 +591,7 @@ struct FromSidesView: ShapeMaker {
                     fastenerMid + perpDir.scaled(by: toothClearence + state.thickness + toothClearence) + dir.scaled(by: lockKeyWidth / 2 + toothClearence),
                     fastenerMid + perpDir.scaled(by: toothClearence + state.thickness + toothClearence) - dir.scaled(by: lockKeyWidth / 2 + toothClearence),
                 ]
-                CanvasRender.Path(closed: true) {
+                CanvasRender.Path {
                     MoveTo(holeCorners[0] + perpDir.scaled(by: toothReliefRadius))
 
                     // hole in fastener
@@ -620,6 +620,8 @@ struct FromSidesView: ShapeMaker {
                               point: holeCorners[3] + dir.scaled(by: toothReliefRadius),
                               angle: .pi * 1.5,
                               axis: Vector(0, 0, 1))
+
+                    LineTo(holeCorners[0] + perpDir.scaled(by: toothReliefRadius))
                 }
 
                 CanvasRender.Path {
@@ -660,7 +662,7 @@ struct FromSidesView: ShapeMaker {
     }
 
     @PathBuilder
-    private func bitTooth(state: InputState, bits: [Bool], from start: Vector, to end: Vector, planeNormal: Vector) -> [PartOfPath] {
+    private func bitTooth(state: InputState.Frozen, bits: [Bool], from start: Vector, to end: Vector, planeNormal: Vector) -> [PartOfPath] {
         let toothReliefRadius = state.thickness * 0.25
         let toothReliefDepth = state.thickness * 0.25
         let toothClearence = 0.1

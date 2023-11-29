@@ -13,7 +13,7 @@ struct Plane {
     let vertex3: simd_double3
 
     var normal: Vector {
-        return Vector.normalFromClockwiseVertices(a: vertex0, b: vertex1, c: vertex2)
+        return Vector.normalFromClockwiseVertices(a: vertex0, pivot: vertex1, b: vertex2)
     }
 
     var vertices: [simd_double3] {

@@ -193,7 +193,7 @@ struct SheetEdgeFace {
     }
 
     var computedFaceNormal: Vector {
-        return Vector.normalFromClockwiseVertices(a: topVertex0, b: topVertex1, c: bottomVertex1)
+        return Vector.normalFromClockwiseVertices(a: topVertex0, pivot: topVertex1, b: bottomVertex1)
     }
 
     var vertices: [Vector] {

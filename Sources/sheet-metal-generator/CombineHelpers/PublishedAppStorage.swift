@@ -2,7 +2,7 @@ import Combine
 import SwiftUI
 
 @propertyWrapper
-public struct PublishedAppStorage<Value> {
+public struct PublishedAppStorage<Value: Equatable> {
     // Based on: https://github.com/OpenCombine/OpenCombine/blob/master/Sources/OpenCombine/Published.swift
 
     @AppStorage private var storedValue: Value
@@ -17,7 +17,7 @@ public struct PublishedAppStorage<Value> {
         public typealias Failure = Never
 
         public func receive<Downstream: Subscriber>(subscriber: Downstream)
-        where Downstream.Input == Value, Downstream.Failure == Never {
+            where Downstream.Input == Value, Downstream.Failure == Never {
             subject.subscribe(subscriber)
         }
 
@@ -51,6 +51,10 @@ public struct PublishedAppStorage<Value> {
             return object[keyPath: storageKeyPath].storedValue
         }
         set {
+            if newValue == object[keyPath: storageKeyPath].storedValue {
+                return
+            }
+
             // https://stackoverflow.com/a/59067605/14314783
             (object.objectWillChange as? ObservableObjectPublisher)?.send()
             object[keyPath: storageKeyPath].publisher?.subject.send(newValue)
