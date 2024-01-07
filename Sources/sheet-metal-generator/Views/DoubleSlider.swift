@@ -13,8 +13,15 @@ struct DoubleSlider: View {
 
     let label: String
     @Binding var value: Double
-
     let range: ClosedRange<Double>
+
+    init(label: String, value: Binding<Double>, range: ClosedRange<Double>) {
+        self.label = label
+        self.range = range
+        self._value = value
+        self.value = max(range.lowerBound, min(range.upperBound, value.wrappedValue))
+    }
+
     var body: some View {
         Slider(value: $value, in: range) {
             HStack(spacing: 1.0) {
