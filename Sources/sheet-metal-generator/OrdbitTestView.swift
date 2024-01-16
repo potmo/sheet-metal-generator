@@ -29,11 +29,11 @@ struct OrbitTestView: ShapeMaker {
         }
 
         /*
-         Orbit(pivot: Vector(0, 0, 0),
+         OrbitCounterClockwise(pivot: Vector(0, 0, 0),
                point: Vector(5, 0, 0),
                rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)))
 
-         Orbit(pivot: Vector(0 + 11 * 1, 0, 0),
+         OrbitCounterClockwise(pivot: Vector(0 + 11 * 1, 0, 0),
                point: Vector(5 + 11 * 1, 0, 0),
                rotation: Quat(angle: .pi * 2, axis: Vector(0, 0, 1)))
 
@@ -70,34 +70,34 @@ struct OrbitTestView: ShapeMaker {
                 let rot3 = Quat(angle: angle, axis: axis)
 
                 Decoration(color: .green) {
-                    AxisOrbit(pivot: pivot,
+                    AxisOrbitCounterClockwise(pivot: pivot,
                               point: startPoint,
                               angle: angle,
                               axis: Vector(0, 0, 1))
 
-                    AxisOrbit(pivot: pivot + Vector(0, -15, 0),
+                    AxisOrbitCounterClockwise(pivot: pivot + Vector(0, -15, 0),
                               point: startPoint + Vector(0, -15, 0),
                               angle: angle,
                               axis: Vector(0, 0, -1))
                 }
 
-                Orbit(pivot: pivot + Vector(0, -30, 0),
+                OrbitCounterClockwise(pivot: pivot + Vector(0, -30, 0),
                       point: startPoint + Vector(0, -30, 0),
                       rotation: rot3)
 
                 // inverted axis
-                Orbit(pivot: pivot + Vector(0, -45, 0),
+                OrbitCounterClockwise(pivot: pivot + Vector(0, -45, 0),
                       point: startPoint + Vector(0, -45, 0),
                       rotation: Quat(angle: rot3.angle, axis: rot3.axis.scaled(by: -1)))
 
                 // off axis
 
-                Orbit(pivot: pivot + Vector(0, -60, 0),
+                OrbitCounterClockwise(pivot: pivot + Vector(0, -60, 0),
                       point: startPoint + Vector(0, -60, 0),
                       rotation: Quat(angle: rot3.angle, axis: (rot3.axis + Vector(0.1, 0, 0)).normalized),
                       arcResolutuon: 2)
 
-                Orbit(pivot: pivot + Vector(0, -75, 0),
+                OrbitCounterClockwise(pivot: pivot + Vector(0, -75, 0),
                       point: startPoint + Vector(0, -75, 0),
                       rotation: Quat(angle: rot3.angle, axis: (rot3.axis.scaled(by: -1) + Vector(0.1, 0, 0)).normalized),
                       arcResolutuon: 2)

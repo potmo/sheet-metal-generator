@@ -227,22 +227,22 @@ struct FromSidesView: ShapeMaker {
                 }
 
                 // left bend
-                Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0, rotation: bendRotationDown, spokes: false)
+                OrbitCounterClockwise(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0, rotation: bendRotationDown, spokes: false)
 
                 Decoration(color: .cyan) {
-                    Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness * state.kFactor), rotation: bendRotationDown, spokes: false)
+                    OrbitCounterClockwise(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness * state.kFactor), rotation: bendRotationDown, spokes: false)
                 }
 
-                Orbit(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: false)
+                OrbitCounterClockwise(pivot: topUndersideEdge.vertex0 + relativePivotPoint, point: topUndersideEdge.vertex0 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: false)
 
-                Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1, rotation: bendRotationDown, spokes: false)
+                OrbitCounterClockwise(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1, rotation: bendRotationDown, spokes: false)
 
                 // right bend
                 Decoration(color: .cyan) {
-                    Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness * state.kFactor), rotation: bendRotationDown, spokes: false)
+                    OrbitCounterClockwise(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness * state.kFactor), rotation: bendRotationDown, spokes: false)
                 }
 
-                Orbit(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: false)
+                OrbitCounterClockwise(pivot: topUndersideEdge.vertex1 + relativePivotPoint, point: topUndersideEdge.vertex1 + planeNormal.scaled(by: state.thickness), rotation: bendRotationDown, spokes: false)
 
                 // bend bottom inside corners
                 Decoration(lineStyle: .dashed()) {
@@ -475,10 +475,10 @@ struct FromSidesView: ShapeMaker {
                 let right = (lidNeutralCorner1Projected - lidNeutralCorner0Projected).normalized
                 let tabSize = 2.0
                 // left radius
-                Orbit(pivot: bendAllowanceCutout0, point: sideInnerTopNeutral0Projected,
+                OrbitCounterClockwise(pivot: bendAllowanceCutout0, point: sideInnerTopNeutral0Projected,
                       rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
                       spokes: false)
-                Orbit(pivot: bendAllowanceCutout0 + right.scaled(by: tabSize + radius * 2),
+                OrbitCounterClockwise(pivot: bendAllowanceCutout0 + right.scaled(by: tabSize + radius * 2),
                       point: bendAllowanceCutout0 + halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
                       rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
                       spokes: false)
@@ -489,11 +489,11 @@ struct FromSidesView: ShapeMaker {
                             to: bendAllowanceMid - halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius))
 
                 // mid radius
-                Orbit(pivot: bendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                OrbitCounterClockwise(pivot: bendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
                       point: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
                       rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
                       spokes: false)
-                Orbit(pivot: bendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
+                OrbitCounterClockwise(pivot: bendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
                       point: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
                       rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
                       spokes: false)
@@ -504,11 +504,11 @@ struct FromSidesView: ShapeMaker {
                             to: bendAllowanceCutout1 - halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2))
 
                 // right view
-                Orbit(pivot: bendAllowanceCutout1,
+                OrbitCounterClockwise(pivot: bendAllowanceCutout1,
                       point: sideInnerTopNeutral1Projected,
                       rotation: Quat(angle: .pi, axis: Vector(0, 0, 1)),
                       spokes: false)
-                Orbit(pivot: bendAllowanceCutout1 - right.scaled(by: tabSize + radius * 2),
+                OrbitCounterClockwise(pivot: bendAllowanceCutout1 - right.scaled(by: tabSize + radius * 2),
                       point: bendAllowanceCutout1 + halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2),
                       rotation: Quat(angle: -.pi, axis: Vector(0, 0, 1)),
                       spokes: false)
@@ -595,28 +595,28 @@ struct FromSidesView: ShapeMaker {
                     MoveTo(holeCorners[0] + perpDir.scaled(by: toothReliefRadius))
 
                     // hole in fastener
-                    AxisOrbit(pivot: holeCorners[0],
+                    AxisOrbitCounterClockwise(pivot: holeCorners[0],
                               point: holeCorners[0] + perpDir.scaled(by: toothReliefRadius),
                               angle: .pi * 1.5,
                               axis: Vector(0, 0, 1))
 
                     LineTo(holeCorners[1] - dir.scaled(by: toothReliefRadius))
 
-                    AxisOrbit(pivot: holeCorners[1],
+                    AxisOrbitCounterClockwise(pivot: holeCorners[1],
                               point: holeCorners[1] - dir.scaled(by: toothReliefRadius),
                               angle: .pi * 1.5,
                               axis: Vector(0, 0, 1))
 
                     LineTo(holeCorners[2] - perpDir.scaled(by: toothReliefRadius))
 
-                    AxisOrbit(pivot: holeCorners[2],
+                    AxisOrbitCounterClockwise(pivot: holeCorners[2],
                               point: holeCorners[2] - perpDir.scaled(by: toothReliefRadius),
                               angle: .pi * 1.5,
                               axis: Vector(0, 0, 1))
 
                     LineTo(holeCorners[3] + dir.scaled(by: toothReliefRadius))
 
-                    AxisOrbit(pivot: holeCorners[3],
+                    AxisOrbitCounterClockwise(pivot: holeCorners[3],
                               point: holeCorners[3] + dir.scaled(by: toothReliefRadius),
                               angle: .pi * 1.5,
                               axis: Vector(0, 0, 1))
@@ -631,7 +631,7 @@ struct FromSidesView: ShapeMaker {
 
                     LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2))
                     LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth))
-                    AxisOrbit(pivot: fastenerStart - dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                    AxisOrbitCounterClockwise(pivot: fastenerStart - dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
                               point: fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth),
                               angle: .pi,
                               axis: Vector(0, 0, 1))
@@ -640,7 +640,7 @@ struct FromSidesView: ShapeMaker {
                     LineTo(fastenerStart)
                     LineTo(fastenerStart + perpDir.scaled(by: fastenerHeight + fastenerExtraHeight))
 
-                    AxisOrbit(pivot: fastenerMid + perpDir.scaled(by: fastenerExtraHeight),
+                    AxisOrbitCounterClockwise(pivot: fastenerMid + perpDir.scaled(by: fastenerExtraHeight),
                               point: fastenerStart + perpDir.scaled(by: fastenerHeight + fastenerExtraHeight),
                               angle: .pi,
                               axis: Vector(0, 0, -1))
@@ -650,7 +650,7 @@ struct FromSidesView: ShapeMaker {
 
                     LineTo(fastenerEnd - perpDir.scaled(by: toothReliefDepth))
 
-                    AxisOrbit(pivot: fastenerEnd + dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                    AxisOrbitCounterClockwise(pivot: fastenerEnd + dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
                               point: fastenerEnd - perpDir.scaled(by: toothReliefDepth),
                               angle: .pi,
                               axis: Vector(0, 0, 1))
@@ -694,12 +694,12 @@ struct FromSidesView: ShapeMaker {
             case (false, true):
                 LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2))
                 LineTo(endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth))
-                AxisOrbit(pivot: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius) - down.scaled(by: toothReliefDepth),
+                AxisOrbitCounterClockwise(pivot: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius) - down.scaled(by: toothReliefDepth),
                           point: endOffset + right.scaled(by: toothClearence) - right.scaled(by: toothReliefRadius * 2) - down.scaled(by: toothReliefDepth),
                           angle: .pi,
                           axis: Vector(0, 0, 1))
                 LineTo(endOffset + right.scaled(by: toothClearence) + toothDown)
-                AxisOrbit(pivot: endOffset + right.scaled(by: toothClearence) + toothDown + right.scaled(by: toothRadius),
+                AxisOrbitCounterClockwise(pivot: endOffset + right.scaled(by: toothClearence) + toothDown + right.scaled(by: toothRadius),
                           point: endOffset + right.scaled(by: toothClearence) + toothDown,
                           angle: .pi * 0.5,
                           axis: Vector(0, 0, -1))
@@ -707,13 +707,13 @@ struct FromSidesView: ShapeMaker {
             case (true, false):
                 LineTo(endOffset - right.scaled(by: toothClearence) + toothDown - right.scaled(by: toothRadius) + down.scaled(by: toothRadius))
 
-                AxisOrbit(pivot: endOffset - right.scaled(by: toothClearence) + toothDown - right.scaled(by: toothRadius),
+                AxisOrbitCounterClockwise(pivot: endOffset - right.scaled(by: toothClearence) + toothDown - right.scaled(by: toothRadius),
                           point: endOffset - right.scaled(by: toothClearence) + toothDown - right.scaled(by: toothRadius) + down.scaled(by: toothRadius),
                           angle: .pi * 0.5,
                           axis: Vector(0, 0, -1))
 
                 LineTo(endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth))
-                AxisOrbit(pivot: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth) + right.scaled(by: toothReliefRadius),
+                AxisOrbitCounterClockwise(pivot: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth) + right.scaled(by: toothReliefRadius),
                           point: endOffset - right.scaled(by: toothClearence) - down.scaled(by: toothReliefDepth),
                           angle: .pi,
                           axis: Vector(0, 0, 1))

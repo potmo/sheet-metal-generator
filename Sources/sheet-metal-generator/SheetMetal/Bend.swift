@@ -119,18 +119,18 @@ struct OrtographicBend: DrawableObject {
 
         // walls
         Decoration(color: .red) {
-            Orbit(pivot: rotationPoint,
+            OrbitCounterClockwise(pivot: rotationPoint,
                   point: bend.fromFace.bottomVertex0,
                   rotation: rotation)
 
-            Orbit(pivot: rotationPoint,
+            OrbitCounterClockwise(pivot: rotationPoint,
                   point: bend.fromFace.topVertex0,
                   rotation: rotation)
         }
 
         // neutral axis
         Decoration(color: .green, lineStyle: .dashed()) {
-            Orbit(pivot: rotationPoint,
+            OrbitCounterClockwise(pivot: rotationPoint,
                   point: bend.fromFace.bottomVertex0 + bend.fromFace.sheetNormal * bend.thickness * bend.kFactor,
                   rotation: rotation)
         }

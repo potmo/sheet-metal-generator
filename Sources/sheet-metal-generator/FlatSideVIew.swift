@@ -133,21 +133,21 @@ struct FlatSideView: ShapeMaker {
         let northRotation = Quat(angle: bendAngles[0], axis: northRotationAxis)
 
         Decoration(color: .red) {
-            Orbit(pivot: northRotationPoint,
-                  point: plane.north.vertex0,
-                  rotation: northRotation)
+            OrbitCounterClockwise(pivot: northRotationPoint,
+                                  point: plane.north.vertex0,
+                                  rotation: northRotation)
         }
 
         Decoration(lineStyle: .dashed()) {
-            Orbit(pivot: northRotationPoint,
-                  point: plane.north.vertex0 + plane.normal * state.thickness * state.kFactor,
-                  rotation: northRotation)
+            OrbitCounterClockwise(pivot: northRotationPoint,
+                                  point: plane.north.vertex0 + plane.normal * state.thickness * state.kFactor,
+                                  rotation: northRotation)
         }
 
         Decoration(color: .red) {
-            Orbit(pivot: northRotationPoint,
-                  point: plane.north.vertex0 + plane.normal * state.thickness,
-                  rotation: northRotation)
+            OrbitCounterClockwise(pivot: northRotationPoint,
+                                  point: plane.north.vertex0 + plane.normal * state.thickness,
+                                  rotation: northRotation)
         }
 
         let northEndPoint = northRotationPoint + northRotation.act(plane.north.vertex0 - northRotationPoint)
