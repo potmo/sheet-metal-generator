@@ -5,13 +5,15 @@ import PackageDescription
 
 let package = Package(name: "sheet-metal-generator",
                       platforms: [
-                          .macOS(.v13),
+                          .macOS(.v14),
                       ],
                       dependencies: [
                           .package(name: "swift-canvas-renderer", path: "../../../swift-canvas-renderer"),
                       ],
                       targets: [
                           .executableTarget(name: "sheet-metal-generator",
-                                            dependencies: [.product(name: "CanvasRender", package: "swift-canvas-renderer")]),
+                                            dependencies: [
+                                                .product(name: "CanvasRender", package: "swift-canvas-renderer"),
+                                            ]),
 
                       ])
