@@ -75,9 +75,16 @@ struct SheetMetalGenerator: App {
         HStack {
             DoubleSlider(label: "Thickness", value: $state.thickness, range: 0.0 ... 5.0)
             DoubleSlider(label: "Size", value: $state.size, range: 0.0 ... 150.0)
+            DoubleSlider(label: "Height", value: $state.height, range: 0.0 ... 150.0)
+        }
+
+        HStack {
+            DoubleSlider(label: "Fastener thickness", value: $state.fastenerThickness, range: 0.0 ... 5.0)
+            DoubleSlider(label: "Fastener width", value: $state.fastenerWidth, range: 0.0 ... 20.0)
+
         }
         HStack {
-            DoubleSlider(label: "Height", value: $state.height, range: 0.0 ... 150.0)
+            DoubleSlider(label: "Clearence", value: $state.holeClearence, range: 0.0 ... 1.0)
             DoubleSlider(label: "Gap scalar", value: $state.gapScalar, range: 1.0 ... 5.0)
         }
 

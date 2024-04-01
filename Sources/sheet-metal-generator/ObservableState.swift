@@ -8,6 +8,9 @@ class InputState: ObservableObject {
     @PublishedAppStorage("thickness") var thickness = 1.0
     @PublishedAppStorage("bend_radius") var bendRadius = 1.0
     @PublishedAppStorage("gap_scalar") var gapScalar = 1.5
+    @PublishedAppStorage("hole_clearence") var holeClearence = 0.2
+    @PublishedAppStorage("fastener_thickness") var fastenerThickness = 0.25
+    @PublishedAppStorage("fastener_width") var fastenerWidth = 4.6
 
     @PublishedAppStorage("k_factor") var kFactor = 0.44
     @PublishedAppStorage("angle_around_x") var angleAroundX = 0.0
@@ -35,6 +38,9 @@ class InputState: ObservableObject {
         return Frozen(size: size,
                       height: height,
                       thickness: thickness,
+                      fastenerThickness: fastenerThickness,
+                      fastenerWidth: fastenerWidth,
+                      holeClearence: holeClearence,
                       bendRadius: bendRadius,
                       gapScalar: gapScalar,
                       kFactor: kFactor,
@@ -56,6 +62,9 @@ class InputState: ObservableObject {
         let size: Double
         let height: Double
         let thickness: Double
+        let fastenerThickness: Double
+        let fastenerWidth: Double
+        let holeClearence: Double
         let bendRadius: Double
         let gapScalar: Double
         let kFactor: Double
