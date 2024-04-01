@@ -1,3 +1,4 @@
+import AppKit
 import CanvasRender
 import simd
 import SwiftUI
@@ -38,7 +39,9 @@ struct SheetMetalGenerator: App {
                 let shapes = maker.shapes(from: state)
                 shapes.forEach { $0.draw(in: context) }
 
-                print(svgTarget.svg)
+                let string = svgTarget.svg
+                NSPasteboard.general.setString(string, forType: .string)
+                print(string)
             }
 
             Button("DXF") {
@@ -56,7 +59,9 @@ struct SheetMetalGenerator: App {
                 let shapes = maker.shapes(from: state)
                 shapes.forEach { $0.draw(in: context) }
 
-                print(dxfTarget.dxf)
+                let string = dxfTarget.dxf
+                print(string)
+                NSPasteboard.general.setString(string, forType: .string)
             }
 
             DoubleSlider(label: "Angle Slerp", value: $state.angleSlerp, range: 0.0 ... 1.0)
