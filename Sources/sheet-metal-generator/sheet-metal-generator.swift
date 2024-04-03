@@ -61,6 +61,7 @@ struct SheetMetalGenerator: App {
 
                 let string = dxfTarget.dxf
                 print(string)
+                NSPasteboard.general.prepareForNewContents()
                 NSPasteboard.general.setString(string, forType: .string)
             }
 
@@ -81,7 +82,6 @@ struct SheetMetalGenerator: App {
         HStack {
             DoubleSlider(label: "Fastener thickness", value: $state.fastenerThickness, range: 0.0 ... 5.0)
             DoubleSlider(label: "Fastener width", value: $state.fastenerWidth, range: 0.0 ... 20.0)
-
         }
         HStack {
             DoubleSlider(label: "Clearence", value: $state.holeClearence, range: 0.0 ... 1.0)
@@ -118,9 +118,8 @@ struct SheetMetalGenerator: App {
             } else {
                 CanvasView(state: state,
                            maker: FromSidesView(),
-                           renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
-                                                                                       rotation: Quat(angle: 0,
-                                                                                                      axis: Vector(1, 0, 0)))))
+                           renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 20),
+                                                                                       rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))))
             }
         }
     }
@@ -139,8 +138,8 @@ struct SheetMetalGenerator: App {
                 CanvasView(state: state,
                            maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 200),
-                                                                                       rotation: Quat(angle: 0,
-                                                                                                      axis: Vector(1, 0, 0)))))
+                                                                                       rotation: Quat(angle: .pi / 2,
+                                                                                                      axis: Vector(-1, 0, 0)))))
 
                 let cameraOrbit = Quat(angle: 0, axis: Vector(0, 0, 1))
                 let cameraTilt = Quat(angle: .pi / 2, axis: cameraOrbit.act(Vector(1, 0, 0)))
@@ -191,7 +190,7 @@ private struct StaticCamera: PerspectiveCamera {
 
     init(position: Vector, lookDirection: Vector) {
         self.position = position
-        self.rotation = Quat(from: Vector(0, 0, -1), to: lookDirection.normalized)
+        self.rotation = Quat(from: Vector(1, 0, 0), to: lookDirection.normalized)
     }
 }
 
@@ -214,7 +213,7 @@ private struct StateObjectCamera: PerspectiveCamera {
 
         // return rotation.act(Vector(state.cameraDollySide, -200, state.cameraDollyUp))
 
-        return Vector(0, 0, 200)
+        return Vector(0, 0, 0)
     }
 
     var rotation: Quat {

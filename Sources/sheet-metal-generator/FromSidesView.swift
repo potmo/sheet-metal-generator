@@ -13,7 +13,7 @@ struct FromSidesView: ShapeMaker {
     func shapes(from state: StateType) -> [DrawableShape] {
         // LineSection(from: Vector(), to: Vector(100, 0, 0))
         let state = state.frozen
-        Decoration(hidden: true) {
+        Decoration(hidden: false) {
             Decoration(color: .cyan) {
                 Circle(center: [0, 0, 0], radius: 3)
             }
@@ -86,28 +86,11 @@ struct FromSidesView: ShapeMaker {
             let computed = Quat(real: 1.0 + u.dot(v), imag: u.cross(v)).normalized
 
             return computed
-            // return Quat(angle: computed.angle, axis: axis)
-
-            // this adds a fractional amount of direction in the axis it shoudn't
-            // return Quat(from: planeNormal, to: sideNormal).normalized
         }
 
         let bendAngles = bendRotations.map { bendRotation in
             bendRotation.angle
         }
-
-        let northBendAngle = +state.angleAroundX
-        let eastBendAngle = -state.angleAroundY
-        let southBendAngle = -state.angleAroundX
-        let westBendAngle = +state.angleAroundY
-
-        let oldBendAngles = [
-            northBendAngle + 90,
-            eastBendAngle + 90,
-            southBendAngle + 90,
-            westBendAngle + 90,
-        ]
-        .map(\.degreesToRadians)
 
         let bottomOutline = innerOutline.map { vertice in vertice.with(z: -state.height) }
         let bottomOutlinePlane = Plane(vertices: bottomOutline)
@@ -115,19 +98,6 @@ struct FromSidesView: ShapeMaker {
         let insideSetbacks = bendAngles.map { bendAngle in
             return Bend.insideSetback(angle: bendAngle,
                                       radius: state.bendRadius)
-        }
-
-        let outsideSetbacks = bendAngles.map { bendAngle in
-            return Bend.outsideSetback(angle: bendAngle,
-                                       radius: state.bendRadius,
-                                       thickness: state.thickness)
-        }
-
-        let bendAllowances = bendAngles.map { bendAngle in
-            return Bend.bendAllowance(angle: bendAngle,
-                                      insideRadius: state.bendRadius,
-                                      kFactor: state.kFactor,
-                                      materialThickness: state.thickness)
         }
 
         let setbackInTopPlane = insideSetbacks.indices.map { index -> Vector in
@@ -144,6 +114,7 @@ struct FromSidesView: ShapeMaker {
             .south.offsetted(by: setbackInTopPlane[2])
             .west.offsetted(by: setbackInTopPlane[3])
 
+        /*
         Decoration(color: .red) {
             Arrow(vector: Vector(10, 0, 0), origo: Vector())
         }
@@ -159,19 +130,18 @@ struct FromSidesView: ShapeMaker {
             Arrow(vector: Vector(0, -1, 0), origo: Vector(-5, 0, 0))
         }
 
-        for (index, edge) in prescaledPlane.edges.enumerated() {
+        */
+
+        for (index, _) in prescaledPlane.edges.enumerated() {
             let bendAngle = bendAngles[index]
-            let oldBendAngle = oldBendAngles[index]
+
             let sideNormal = sideNormals[index]
-            let insideSetback = insideSetbacks[index]
-            let outsideSetback = outsideSetbacks[index]
+
             let topUndersideEdge = topUndersidePlane.edges[index]
             let bottomInsideEdge = bottomOutlinePlane.edges[index]
-            let bendAllowance = bendAllowances[index]
 
             let relativePivotPoint = planeNormal.scaled(by: -state.bendRadius)
 
-            let oldBendRotationDown = Quat(angle: oldBendAngle, axis: -topUndersideEdge.direction)
             let bendRotationDown = bendRotations[index]
             let edgeNormal = bendRotationDown.axis.cross(planeNormal)
 
@@ -538,20 +508,22 @@ struct FromSidesView: ShapeMaker {
                     //  Arrow(from: sideOuterBottomNeutral0Projected, to: sideOuterBottomNeutral1Projected)
                 }
 
-                let maxBits = 12 // max value 8191
-                // let number = min(6435, (1 << maxBits) - 1)
+                /*
+                 let maxBits = 12 // max value 8191
+                 // let number = min(6435, (1 << maxBits) - 1)
 
-                // just use the aligning bits for all sides but one
-                let number = index == 2 ? 0b1101_1100_0000 : 0b0000_0000_0000
+                 // just use the aligning bits for all sides but one
+                 let number = index == 2 ? 0b1101_1100_0000 : 0b0000_0000_0000
 
-                // get the bits and then split the bits so its up-down for 0 and down up for 1
-                let upsAndDowns = (0 ..< maxBits)
-                    .map { maxBits - $0 - 1 }
-                    .map { bit($0, of: number) }
-                    .reversed()
-                    .map { $0 }
+                 // get the bits and then split the bits so its up-down for 0 and down up for 1
+                 let upsAndDowns = (0 ..< maxBits)
+                     .map { maxBits - $0 - 1 }
+                     .map { bit($0, of: number) }
+                     .reversed()
+                     .map { $0 }
 
-                // .flatMap { $0 ? [true, false] : [false, true] } // double so 1 bit is 10 and 0 is 01 so they dont fit oneanother
+                 // .flatMap { $0 ? [true, false] : [false, true] } // double so 1 bit is 10 and 0 is 01 so they dont fit oneanother
+                  */
 
                 let start = sideOuterBottomNeutral0Projected
                 let end = sideOuterBottomNeutral1Projected
@@ -744,8 +716,10 @@ struct FromSidesView: ShapeMaker {
                     }
                 }
 
-                TextString(center: fastenerMid + perpDir.scaled(by: 20.0),
-                           text: "\(bendRotationDown.angle.radiansToDegrees.toFixed(4))°", size: 12)
+                /*
+                 TextString(center: fastenerMid + perpDir.scaled(by: 20.0),
+                            text: "\(bendRotationDown.angle.radiansToDegrees.toFixed(4))°", size: 12)
+                  */
             }
         }
     }
