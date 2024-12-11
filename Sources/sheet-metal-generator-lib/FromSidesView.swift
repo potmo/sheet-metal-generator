@@ -6,14 +6,17 @@ import Foundation
 import simd
 import SwiftUI
 
-struct FromSidesView: ShapeMaker {
-    typealias StateType = InputState
+public struct FromSidesView: ShapeMaker {
+    public typealias StateType = InputState
+
+    public init() {
+    }
 
     @CanvasBuilder
-    func shapes(from state: StateType) -> [DrawableShape] {
+    public func shapes(from state: StateType) -> [DrawableShape] {
         // LineSection(from: Vector(), to: Vector(100, 0, 0))
         let state = state.frozen
-        Decoration(hidden: false) {
+        Decoration(hidden: true) {
             Decoration(color: .cyan) {
                 Circle(center: [0, 0, 0], radius: 3)
             }
@@ -31,11 +34,13 @@ struct FromSidesView: ShapeMaker {
             }
         }
 
-        let xAxisRotation = Quat(angle: state.angleAroundX.degreesToRadians, axis: Vector(1, 0, 0))
-        let yAxisRotation = Quat(angle: state.angleAroundY.degreesToRadians, axis: Vector(0, 1, 0))
-        let localYAxis = xAxisRotation.act(Vector(0, 1, 0))
-        let localXAxis = yAxisRotation.act(Vector(1, 0, 0))
-        let planeNormal = localXAxis.cross(localYAxis).normalized
+        // let xAxisRotation = Quat(angle: state.angleAroundX.degreesToRadians, axis: Vector(1, 0, 0))
+        // let yAxisRotation = Quat(angle: state.angleAroundY.degreesToRadians, axis: Vector(0, 1, 0))
+        // let localYAxis = xAxisRotation.act(Vector(0, 1, 0))
+        // let localXAxis = yAxisRotation.act(Vector(1, 0, 0))
+        // let planeNormal = localXAxis.cross(localYAxis).normalized
+
+        let planeNormal = state.topFaceNormal
 
         // draw outline
         let innerSize = state.size - state.thickness * 2
@@ -113,24 +118,6 @@ struct FromSidesView: ShapeMaker {
             .east.offsetted(by: setbackInTopPlane[1])
             .south.offsetted(by: setbackInTopPlane[2])
             .west.offsetted(by: setbackInTopPlane[3])
-
-        /*
-        Decoration(color: .red) {
-            Arrow(vector: Vector(10, 0, 0), origo: Vector())
-        }
-        Decoration(color: .green) {
-            Arrow(vector: Vector(0, 10, 0), origo: Vector())
-        }
-        Decoration(color: .blue) {
-            Arrow(vector: Vector(0, 0, 10), origo: Vector())
-        }
-
-        Decoration(color: .blue) {
-            AxisOrbitCounterClockwise(pivot: Vector(), point: Vector(5, 0, 0), angle: .pi, axis: Vector(0, 0, 1))
-            Arrow(vector: Vector(0, -1, 0), origo: Vector(-5, 0, 0))
-        }
-
-        */
 
         for (index, _) in prescaledPlane.edges.enumerated() {
             let bendAngle = bendAngles[index]
@@ -490,7 +477,7 @@ struct FromSidesView: ShapeMaker {
 
                 // bend allowance bend line
 
-                Decoration(color: .red, lineStyle: .bendDash) {
+                Decoration(color: .red, lineStyle: .bendDash, hidden: true) {
                     LineSection(from: sideInnerTopNeutral0Projected, to: sideInnerTopNeutral1Projected)
                 }
 
@@ -547,7 +534,14 @@ struct FromSidesView: ShapeMaker {
 
                 if index == 2 {
                     Decoration(color: .yellow) {
-                        PathNumber(number: 1_234_567_890,
+                        PathNumber(number: state.secondLabel,
+                                   topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0) - perpDir.scaled(by: 5.0),
+                                   sideDirection: -dir,
+                                   downDirection: perpDir,
+                                   scale: 2.5,
+                                   spacing: 0.75)
+
+                        PathNumber(number: state.firstLabel,
                                    topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0),
                                    sideDirection: -dir,
                                    downDirection: perpDir,
@@ -669,7 +663,7 @@ struct FromSidesView: ShapeMaker {
                 let yRange = 0 ..< 5
 
                 // Bottom plate holes
-                Decoration(color: .blue) {
+                Decoration(color: .blue, hidden: true) {
                     for x in xRange {
                         for y in yRange {
                             Offset(Vector(60, 0, 0) + Vector(x: state.size * Double(x), y: state.size * Double(y), z: 0)) {

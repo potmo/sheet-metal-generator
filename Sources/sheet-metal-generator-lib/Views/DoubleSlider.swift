@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct DoubleSlider: View {
+public struct DoubleSlider: View {
     static let formatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -11,18 +11,18 @@ struct DoubleSlider: View {
         return formatter
     }()
 
-    let label: String
+    public let label: String
     @Binding var value: Double
-    let range: ClosedRange<Double>
+    public let range: ClosedRange<Double>
 
-    init(label: String, value: Binding<Double>, range: ClosedRange<Double>) {
+    public init(label: String, value: Binding<Double>, range: ClosedRange<Double>) {
         self.label = label
         self.range = range
         self._value = value
         self.value = max(range.lowerBound, min(range.upperBound, value.wrappedValue))
     }
 
-    var body: some View {
+    public var body: some View {
         Slider(value: $value, in: range) {
             HStack(spacing: 1.0) {
                 Spacer()

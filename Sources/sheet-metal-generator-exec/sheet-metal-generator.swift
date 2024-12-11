@@ -1,5 +1,6 @@
 import AppKit
 import CanvasRender
+import sheet_metal_generator_lib
 import simd
 import SwiftUI
 
@@ -47,9 +48,9 @@ struct SheetMetalGenerator: App {
             Button("DXF") {
                 let dxfTarget = DXFRenderTarget()
                 let maker = FromSidesView()
+
                 let staticCamera = StaticCamera(position: Vector(0, 0, 200),
-                                                rotation: Quat(angle: 0,
-                                                               axis: Vector(0, 0, 1)))
+                                                rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
 
                 let renderTransform = OrthographicTransform(camera: staticCamera)
                 let context = RenderContext(canvasSize: Vector2D(1000, 1000),
@@ -59,7 +60,7 @@ struct SheetMetalGenerator: App {
                 let shapes = maker.shapes(from: state)
                 shapes.forEach { $0.draw(in: context) }
 
-                let string = dxfTarget.dxf
+                let string = dxfTarget.dxf(pdfFileName: "generated.pdf", dxfFileName: "generated.dxf", includeHeader: true)
                 print(string)
                 NSPasteboard.general.prepareForNewContents()
                 NSPasteboard.general.setString(string, forType: .string)
