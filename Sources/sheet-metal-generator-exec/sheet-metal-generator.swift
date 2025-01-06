@@ -76,6 +76,7 @@ struct SheetMetalGenerator: App {
 
         HStack {
             DoubleSlider(label: "Thickness", value: $state.thickness, range: 0.0 ... 5.0)
+            DoubleSlider(label: "Bottom Thickness", value: $state.bottomPlateThickness, range: 0.0 ... 5.0)
             DoubleSlider(label: "Size", value: $state.size, range: 0.0 ... 150.0)
             DoubleSlider(label: "Height", value: $state.height, range: 0.0 ... 150.0)
         }

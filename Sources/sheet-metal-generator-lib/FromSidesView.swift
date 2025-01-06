@@ -522,27 +522,21 @@ public struct FromSidesView: ShapeMaker {
                 // let firstBits = [false, true, false] + Array(upsAndDowns[0 ..< (upsAndDowns.count / 2)]) + [false]
                 // let secondBits = [false] + Array(upsAndDowns[(upsAndDowns.count / 2) ..< upsAndDowns.count]) + [false, true, false]
 
-                let firstBits = [false, false, false, false]
-                let secondBits = [false, false, false, false]
-
                 let fullWidth = (end - start).length
-                let toothWidth = state.thickness * 2
-                let toothedWidth = Double(firstBits.count + secondBits.count) * toothWidth
-                let fastenerWidth = 12.0
 
-                let fastenerExtraHeight = state.thickness
+                let fastenerWidth = 8.0
+                let centerSeparation = 1.0
+                let hookWidth = 10.0
+                let hookDepth = 6.0
+                let hookOutsideMaterialWidth = state.thickness * 3
 
+                let fastenerExtraHeight = state.bottomPlateThickness
+
+                // add label
                 if index == 2 {
                     Decoration(color: .yellow) {
-                        PathNumber(number: state.secondLabel,
-                                   topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0) - perpDir.scaled(by: 5.0),
-                                   sideDirection: -dir,
-                                   downDirection: perpDir,
-                                   scale: 2.5,
-                                   spacing: 0.75)
-
                         PathNumber(number: state.firstLabel,
-                                   topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0),
+                                   topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0) - perpDir.scaled(by: 5.0),
                                    sideDirection: -dir,
                                    downDirection: perpDir,
                                    scale: 2.5,
@@ -553,110 +547,153 @@ public struct FromSidesView: ShapeMaker {
                 let toothClearence = state.holeClearence
                 let toothReliefRadius = state.thickness * 0.5
                 let toothReliefDepth = state.thickness * 0.5
-                let lockKeyWidth = state.fastenerWidth
 
                 let toothKeyRoundingRadius = 1.0
 
                 // offset everything to take account for the side overlap
-                let fastenerStart = start + dir.scaled(by: fullWidth / 2 - fastenerWidth / 2 + toothClearence) + dir.scaled(by: state.thickness * state.gapScalar * 0.5)
-                let fastenerEnd = start + dir.scaled(by: fullWidth / 2 + fastenerWidth / 2 - toothClearence) + dir.scaled(by: state.thickness * state.gapScalar * 0.5)
-                let fastenerMid = fastenerStart + (fastenerEnd - fastenerStart).scaled(by: 0.5) + perpDir.scaled(by: state.thickness)
-
-                let holeCorners: [Vector] = [
-                    fastenerMid - dir.scaled(by: lockKeyWidth / 2 + toothClearence),
-                    fastenerMid + dir.scaled(by: lockKeyWidth / 2 + toothClearence),
-                    fastenerMid + perpDir.scaled(by: state.fastenerThickness + toothClearence) + dir.scaled(by: lockKeyWidth / 2 + toothClearence),
-                    fastenerMid + perpDir.scaled(by: state.fastenerThickness + toothClearence) - dir.scaled(by: lockKeyWidth / 2 + toothClearence),
-                ]
-
-                CanvasRender.Path {
-                    MoveTo(holeCorners[0] + perpDir.scaled(by: toothReliefRadius))
-
-                    // hole in fastener
-                    AxisOrbitCounterClockwise(pivot: holeCorners[0] + dir.scaled(by: toothReliefRadius),
-                                              point: holeCorners[0],
-                                              angle: .pi,
-                                              axis: Vector(0, 0, 1))
-
-                    LineTo(holeCorners[1] - dir.scaled(by: toothReliefRadius * 2))
-
-                    AxisOrbitCounterClockwise(pivot: holeCorners[1] - dir.scaled(by: toothReliefRadius),
-                                              point: holeCorners[1] - dir.scaled(by: toothReliefRadius * 2),
-                                              angle: .pi,
-                                              axis: Vector(0, 0, 1))
-
-                    LineTo(holeCorners[2])
-
-                    AxisOrbitCounterClockwise(pivot: holeCorners[2] - dir.scaled(by: toothReliefRadius),
-                                              point: holeCorners[2],
-                                              angle: .pi,
-                                              axis: Vector(0, 0, 1))
-
-                    LineTo(holeCorners[3] + dir.scaled(by: toothReliefRadius * 2))
-
-                    AxisOrbitCounterClockwise(pivot: holeCorners[3] + dir.scaled(by: toothReliefRadius),
-                                              point: holeCorners[3] + dir.scaled(by: toothReliefRadius * 2),
-                                              angle: .pi,
-                                              axis: Vector(0, 0, 1))
-
-                    LineTo(holeCorners[0])
+                let fastenerStart = if index == 0 || index == 2 { // up, down
+                    start +
+                        dir.scaled(by: fullWidth / 2 - fastenerWidth - centerSeparation + toothClearence) +
+                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                } else if index == 1 { // right side
+                    start +
+                        dir.scaled(by: fullWidth / 2 - hookWidth / 2 + toothClearence) +
+                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                } else if index == 3 { // left side
+                    start +
+                        dir.scaled(by: fullWidth / 2 - hookWidth / 2 + toothClearence) +
+                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                } else {
+                    fatalError("wrong index")
                 }
 
-                CanvasRender.Path {
-                    MoveTo(start)
+                let fastenerEnd = if index == 0 || index == 2 { // up, down
+                    start +
+                        dir.scaled(by: fullWidth / 2 - centerSeparation - toothClearence) +
+                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                } else if index == 1 { // right side
+                    start +
+                        dir.scaled(by: fullWidth / 2 + hookWidth / 2 - toothClearence) +
+                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                } else if index == 3 { // left side
+                    start +
+                        dir.scaled(by: fullWidth / 2 + hookWidth / 2 - toothClearence) +
+                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                } else {
+                    fatalError("wrong index")
+                }
 
-                    bitTooth(state: state,
-                             bits: firstBits,
-                             from: fastenerStart - dir.scaled(by: toothedWidth / 2),
-                             to: fastenerStart,
-                             planeNormal: [0, 0, 1],
-                             toothReliefRadius: toothReliefRadius,
-                             toothReliefDepth: toothReliefDepth,
-                             toothClearence: toothClearence)
+                let fastenerColors: [Int: CanvasColor] = [
+                    0: .red,
+                    1: .blue,
+                    2: .green,
+                    3: .purple,
+                ]
 
-                    LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2))
-                    LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth))
-                    AxisOrbitCounterClockwise(pivot: fastenerStart - dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
-                                              point: fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth),
-                                              angle: .pi,
-                                              axis: Vector(0, 0, 1))
+                // regular tabs
+                Decoration(color: fastenerColors[index]!, hidden: index != 0 && index != 2) {
+                    CanvasRender.Path {
+                        MoveTo(start)
 
-                    // fastener tab
-                    LineTo(fastenerStart)
-                    LineTo(fastenerStart + perpDir.scaled(by: state.thickness + fastenerExtraHeight))
+                        LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2))
+                        LineTo(fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth))
+                        AxisOrbitCounterClockwise(pivot: fastenerStart - dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                                                  point: fastenerStart - dir.scaled(by: toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth),
+                                                  angle: .pi,
+                                                  axis: Vector(0, 0, 1))
 
-                    AxisOrbitCounterClockwise(pivot: fastenerStart + perpDir.scaled(by: state.thickness + fastenerExtraHeight) + dir.scaled(by: toothKeyRoundingRadius),
-                                              point: fastenerStart + perpDir.scaled(by: state.thickness + fastenerExtraHeight),
-                                              angle: .pi * 0.5, axis: Vector(0, 0, -1))
+                        // fastener tab
+                        LineTo(fastenerStart)
+                        LineTo(fastenerStart + perpDir.scaled(by: state.thickness + fastenerExtraHeight))
 
-                    LineTo(fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight + toothKeyRoundingRadius) - dir.scaled(by: toothKeyRoundingRadius))
+                        AxisOrbitCounterClockwise(pivot: fastenerStart + perpDir.scaled(by: state.thickness + fastenerExtraHeight) + dir.scaled(by: toothKeyRoundingRadius),
+                                                  point: fastenerStart + perpDir.scaled(by: state.thickness + fastenerExtraHeight),
+                                                  angle: .pi * 0.5, axis: Vector(0, 0, -1))
 
-                    AxisOrbitCounterClockwise(pivot: fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight) - dir.scaled(by: toothKeyRoundingRadius),
-                                              point: fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight + toothKeyRoundingRadius) - dir.scaled(by: toothKeyRoundingRadius),
-                                              angle: .pi * 0.5, axis: Vector(0, 0, -1))
+                        LineTo(fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight + toothKeyRoundingRadius) - dir.scaled(by: toothKeyRoundingRadius))
 
-                    LineTo(fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight))
-                    LineTo(fastenerEnd)
+                        AxisOrbitCounterClockwise(pivot: fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight) - dir.scaled(by: toothKeyRoundingRadius),
+                                                  point: fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight + toothKeyRoundingRadius) - dir.scaled(by: toothKeyRoundingRadius),
+                                                  angle: .pi * 0.5, axis: Vector(0, 0, -1))
 
-                    LineTo(fastenerEnd - perpDir.scaled(by: toothReliefDepth))
+                        LineTo(fastenerEnd + perpDir.scaled(by: state.thickness + fastenerExtraHeight))
+                        LineTo(fastenerEnd)
 
-                    AxisOrbitCounterClockwise(pivot: fastenerEnd + dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
-                                              point: fastenerEnd - perpDir.scaled(by: toothReliefDepth),
-                                              angle: .pi,
-                                              axis: Vector(0, 0, 1))
+                        LineTo(fastenerEnd - perpDir.scaled(by: toothReliefDepth))
 
-                    LineTo(fastenerEnd + dir.scaled(by: toothReliefRadius * 2))
+                        AxisOrbitCounterClockwise(pivot: fastenerEnd + dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                                                  point: fastenerEnd - perpDir.scaled(by: toothReliefDepth),
+                                                  angle: .pi,
+                                                  axis: Vector(0, 0, 1))
 
-                    bitTooth(state: state,
-                             bits: secondBits,
-                             from: fastenerEnd,
-                             to: fastenerEnd + dir.scaled(by: toothedWidth / 2),
-                             planeNormal: [0, 0, 1],
-                             toothReliefRadius: toothReliefRadius,
-                             toothReliefDepth: toothReliefDepth,
-                             toothClearence: toothClearence)
+                        LineTo(fastenerEnd + dir.scaled(by: toothReliefRadius * 2))
 
-                    LineTo(end)
+                        LineTo(end)
+                    }
+                }
+
+                // right
+                Decoration(color: fastenerColors[index]!, hidden: index != 3 && index != 1) {
+                    let flip = index == 1
+
+                    Flip(at: start + (end - start).scaled(by: 0.5), around: perpDir, by: flip ? .pi : 0) {
+                        CanvasRender.Path {
+                            MoveTo(start)
+
+                            // hook tab
+                            LineTo(fastenerStart + dir.scaled(by: toothReliefRadius))
+
+                            LineTo(fastenerStart + dir.scaled(by: hookDepth - toothReliefRadius * 2))
+
+                            LineTo(fastenerStart + dir.scaled(by: hookDepth - toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth))
+                            AxisOrbitCounterClockwise(pivot: fastenerStart + dir.scaled(by: hookDepth - toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                                                      point: fastenerStart + dir.scaled(by: hookDepth - toothReliefRadius * 2) - perpDir.scaled(by: toothReliefDepth),
+                                                      angle: .pi,
+                                                      axis: Vector(0, 0, 1))
+
+                            LineTo(fastenerStart + dir.scaled(by: hookDepth) + perpDir.scaled(by: toothReliefDepth + state.bottomPlateThickness + state.holeClearence * 2))
+
+                            AxisOrbitCounterClockwise(pivot: fastenerStart + dir.scaled(by: hookDepth - toothReliefRadius) + perpDir.scaled(by: toothReliefDepth + state.bottomPlateThickness + state.holeClearence * 2),
+                                                      point: fastenerStart + dir.scaled(by: hookDepth) + perpDir.scaled(by: toothReliefDepth + state.bottomPlateThickness + state.holeClearence * 2),
+                                                      angle: .pi,
+                                                      axis: Vector(0, 0, 1))
+
+                            LineTo(fastenerStart + dir.scaled(by: hookDepth - toothReliefRadius * 2) + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2))
+                            LineTo(fastenerStart + dir.scaled(by: toothKeyRoundingRadius) + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2))
+
+                            AxisOrbitCounterClockwise(pivot: fastenerStart + dir.scaled(by: toothKeyRoundingRadius) + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2 + toothKeyRoundingRadius),
+                                                      point: fastenerStart + dir.scaled(by: toothKeyRoundingRadius) + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2),
+                                                      angle: .pi / 2,
+                                                      axis: Vector(0, 0, -1))
+
+                            LineTo(fastenerStart + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2 + hookOutsideMaterialWidth - toothKeyRoundingRadius))
+
+                            AxisOrbitCounterClockwise(pivot: fastenerStart + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2 + hookOutsideMaterialWidth - toothKeyRoundingRadius) + dir.scaled(by: toothKeyRoundingRadius),
+                                                      point: fastenerStart + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2 + hookOutsideMaterialWidth - toothKeyRoundingRadius),
+                                                      angle: .pi * 0.5,
+                                                      axis: Vector(0, 0, -1))
+
+                            LineTo(fastenerEnd + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2 + hookOutsideMaterialWidth) - dir.scaled(by: toothKeyRoundingRadius))
+
+                            AxisOrbitCounterClockwise(pivot: fastenerEnd + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2 + hookOutsideMaterialWidth - toothKeyRoundingRadius) - dir.scaled(by: toothKeyRoundingRadius),
+                                                      point: fastenerEnd + perpDir.scaled(by: state.bottomPlateThickness + state.holeClearence * 2 + hookOutsideMaterialWidth) - dir.scaled(by: toothKeyRoundingRadius),
+                                                      angle: .pi * 0.5,
+                                                      axis: Vector(0, 0, -1))
+
+                            LineTo(fastenerEnd)
+
+                            LineTo(fastenerEnd - perpDir.scaled(by: toothReliefDepth))
+
+                            AxisOrbitCounterClockwise(pivot: fastenerEnd + dir.scaled(by: toothReliefRadius) - perpDir.scaled(by: toothReliefDepth),
+                                                      point: fastenerEnd - perpDir.scaled(by: toothReliefDepth),
+                                                      angle: .pi,
+                                                      axis: Vector(0, 0, 1))
+
+                            LineTo(fastenerEnd + dir.scaled(by: toothReliefRadius * 2))
+
+                            LineTo(end)
+                        }
+                    }
                 }
 
                 let xRange = 0 ..< 5

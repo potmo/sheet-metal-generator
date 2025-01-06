@@ -6,6 +6,7 @@ public class InputState: ObservableObject {
     @PublishedAppStorage("size") public var size = 50.0
     @PublishedAppStorage("height") public var height = 50.0
     @PublishedAppStorage("thickness") public var thickness = 1.0
+    @PublishedAppStorage("bottomPlateThickness") public var bottomPlateThickness = 3.0
     @PublishedAppStorage("bend_radius") public var bendRadius = 1.0
     @PublishedAppStorage("gap_scalar") public var gapScalar = 1.5
     @PublishedAppStorage("hole_clearence") public var holeClearence = 0.2
@@ -33,8 +34,8 @@ public class InputState: ObservableObject {
 
     public var staticNormal: Vector? = nil
 
-    public var firstLabel = "0.1234567890"
-    public var secondLabel = "0987654321.0"
+    public var firstLabel = "123 456"
+
 
     public init() {
     }
@@ -43,6 +44,7 @@ public class InputState: ObservableObject {
         return Frozen(size: size,
                       height: height,
                       thickness: thickness,
+                      bottomPlateThickness: bottomPlateThickness,
                       fastenerThickness: fastenerThickness,
                       fastenerWidth: fastenerWidth,
                       holeClearence: holeClearence,
@@ -62,14 +64,14 @@ public class InputState: ObservableObject {
                       show3dView: show3dView,
                       fullScreenTop: fullScreenTop,
                       staticNormal: staticNormal,
-                      firstLabel: firstLabel,
-                      secondLabel: secondLabel)
+                      firstLabel: firstLabel)
     }
 
     public struct Frozen {
         let size: Double
         let height: Double
         let thickness: Double
+        let bottomPlateThickness: Double
         let fastenerThickness: Double
         let fastenerWidth: Double
         let holeClearence: Double
@@ -90,11 +92,12 @@ public class InputState: ObservableObject {
         let topFaceNormal: Vector
 
         let firstLabel: String
-        let secondLabel: String
+        
 
         init(size: Double,
              height: Double,
              thickness: Double,
+             bottomPlateThickness: Double,
              fastenerThickness: Double,
              fastenerWidth: Double,
              holeClearence: Double,
@@ -114,11 +117,11 @@ public class InputState: ObservableObject {
              show3dView: Bool,
              fullScreenTop: Bool,
              staticNormal: Vector?,
-             firstLabel: String,
-             secondLabel: String) {
+             firstLabel: String) {
             self.size = size
             self.height = height
             self.thickness = thickness
+            self.bottomPlateThickness = bottomPlateThickness
             self.fastenerThickness = fastenerThickness
             self.fastenerWidth = fastenerWidth
             self.holeClearence = holeClearence
@@ -136,7 +139,7 @@ public class InputState: ObservableObject {
             self.show3dView = show3dView
             self.fullScreenTop = fullScreenTop
             self.firstLabel = firstLabel
-            self.secondLabel = secondLabel
+
 
             if let staticNormal {
                 self.topFaceNormal = staticNormal
