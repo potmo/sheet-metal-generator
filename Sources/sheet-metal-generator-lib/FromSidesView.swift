@@ -528,7 +528,7 @@ public struct FromSidesView: ShapeMaker {
                 let fastenerHoleWidth = 6.0
                 let hookWidth = 10.0
                 let hookDepth = 6.0
-                let hookIntoSlotOffset = -1.0
+                let hookIntoSlotOffset = 0.0 // -1.0
                 let fastenerExtraHeight = state.bottomPlateThickness + state.thickness * 1
                 let insideTabLength = state.thickness * 3
 
@@ -680,153 +680,156 @@ public struct FromSidesView: ShapeMaker {
                     }
                 }
 
-                let xRange = 0 ..< 5
-                let yRange = 0 ..< (5 + 1)
+                // base plate
+                Decoration(hidden: true) {
+                    let xRange = 0 ..< 5
+                    let yRange = 0 ..< (5 + 1)
 
-                let baseplateOffset = Vector(0, 80, 0)
+                    let baseplateOffset = Vector(0, 80, 0)
 
-                Offset(baseplateOffset) {
-                    let width = Vector(state.size, 0.0, 0.0).scaled(by: Double(xRange.upperBound + 1))
-                    let height = Vector(0.0, state.size, 0.0).scaled(by: Double(yRange.upperBound))
-                    let bottom = Vector(-state.size, -state.size, 0)
-                    Polygon(vertices: [
-                        bottom,
-                        bottom + width,
-                        bottom + width + height,
-                        bottom + height,
-                    ],
-                    closed: true)
-                }
+                    Offset(baseplateOffset) {
+                        let width = Vector(state.size, 0.0, 0.0).scaled(by: Double(xRange.upperBound + 1))
+                        let height = Vector(0.0, state.size, 0.0).scaled(by: Double(yRange.upperBound))
+                        let bottom = Vector(-state.size, -state.size, 0)
+                        Polygon(vertices: [
+                            bottom,
+                            bottom + width,
+                            bottom + width + height,
+                            bottom + height,
+                        ],
+                        closed: true)
+                    }
 
-                // base board holes
-                for x in xRange {
-                    for y in yRange {
-                        Offset(baseplateOffset + Vector(x: state.size * Double(x), y: state.size * Double(y), z: 0)) {
-                            /*
-                             Decoration(color: .gray.opacity(0.1), lineStyle: .dashed(phase: 0, lengths: [5, 5]), hidden: y + 1 == yRange.upperBound) {
+                    // base board holes
+                    for x in xRange {
+                        for y in yRange {
+                            Offset(baseplateOffset + Vector(x: state.size * Double(x), y: state.size * Double(y), z: 0)) {
+                                /*
+                                 Decoration(color: .gray.opacity(0.1), lineStyle: .dashed(phase: 0, lengths: [5, 5]), hidden: y + 1 == yRange.upperBound) {
                                  Polygon(vertices: [
-                                     Vector(-state.size / 2, -state.size / 2, 0),
-                                     Vector(+state.size / 2, -state.size / 2, 0),
-                                     Vector(+state.size / 2, +state.size / 2, 0),
-                                     Vector(-state.size / 2, +state.size / 2, 0),
+                                 Vector(-state.size / 2, -state.size / 2, 0),
+                                 Vector(+state.size / 2, -state.size / 2, 0),
+                                 Vector(+state.size / 2, +state.size / 2, 0),
+                                 Vector(-state.size / 2, +state.size / 2, 0),
                                  ],
                                  closed: true)
-                             }
-                              */
+                                 }
+                                 */
 
-                            // top bottom holes
-                            Decoration(color: .red, hidden: false) {
-                                // make all but the bottom have some extra space to fit two tabs
-                                let extraSpace = y != 0 ? Vector(0, -state.thickness, 0) : Vector()
+                                // top bottom holes
+                                Decoration(hidden: false) {
+                                    // make all but the bottom have some extra space to fit two tabs
+                                    let extraSpace = y != 0 ? Vector(0, -state.thickness, 0) : Vector()
 
-                                for flip in [true, false] {
-                                    Flip(at: Vector(0, -state.size / 2, 0), around: Vector(0, 1, 0), by: flip ? .pi : 0.0) {
-                                        Path {
-                                            MoveTo(Vector(0,
-                                                          -state.size / 2 + insideTabLength,
-                                                          0))
-                                            LineTo(Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
-                                                          -state.size / 2 + insideTabLength,
-                                                          0))
+                                    for flip in [true, false] {
+                                        Flip(at: Vector(0, -state.size / 2, 0), around: Vector(0, 1, 0), by: flip ? .pi : 0.0) {
+                                            Path {
+                                                MoveTo(Vector(0,
+                                                              -state.size / 2 + insideTabLength,
+                                                              0))
+                                                LineTo(Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
+                                                              -state.size / 2 + insideTabLength,
+                                                              0))
 
-                                            AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
-                                                                                    -state.size / 2 + insideTabLength - toothKeyRoundingRadius,
-                                                                                    0),
-                                                                      point: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
-                                                                                    -state.size / 2 + insideTabLength,
-                                                                                    0),
-                                                                      angle: .pi / 2,
-                                                                      axis: Vector(0, 0, -1))
+                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
+                                                                                        -state.size / 2 + insideTabLength - toothKeyRoundingRadius,
+                                                                                        0),
+                                                                          point: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
+                                                                                        -state.size / 2 + insideTabLength,
+                                                                                        0),
+                                                                          angle: .pi / 2,
+                                                                          axis: Vector(0, 0, -1))
 
-                                            LineTo(Vector(fastenerHoleWidth / 2,
-                                                          -state.size / 2,
-                                                          0) + extraSpace)
+                                                LineTo(Vector(fastenerHoleWidth / 2,
+                                                              -state.size / 2,
+                                                              0) + extraSpace)
 
-                                            AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 + toothReliefRadius,
-                                                                                    -state.size / 2,
-                                                                                    0) + extraSpace,
-                                                                      point: Vector(fastenerHoleWidth / 2,
-                                                                                    -state.size / 2,
-                                                                                    0) + extraSpace,
-                                                                      angle: .pi,
-                                                                      axis: Vector(0, 0, 1))
-                                            LineTo(Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence, -state.size / 2, 0) + extraSpace)
+                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 + toothReliefRadius,
+                                                                                        -state.size / 2,
+                                                                                        0) + extraSpace,
+                                                                          point: Vector(fastenerHoleWidth / 2,
+                                                                                        -state.size / 2,
+                                                                                        0) + extraSpace,
+                                                                          angle: .pi,
+                                                                          axis: Vector(0, 0, 1))
+                                                LineTo(Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence, -state.size / 2, 0) + extraSpace)
 
-                                            AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 - toothReliefRadius + toothClearence,
-                                                                                    -state.size / 2,
-                                                                                    0) + extraSpace,
-                                                                      point: Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence,
-                                                                                    -state.size / 2,
-                                                                                    0) + extraSpace,
-                                                                      angle: .pi,
-                                                                      axis: Vector(0, 0, 1))
+                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 - toothReliefRadius + toothClearence,
+                                                                                        -state.size / 2,
+                                                                                        0) + extraSpace,
+                                                                          point: Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence,
+                                                                                        -state.size / 2,
+                                                                                        0) + extraSpace,
+                                                                          angle: .pi,
+                                                                          axis: Vector(0, 0, 1))
 
-                                            LineTo(Vector(fastenerWidth / 2 + toothClearence,
-                                                          -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
-                                                          0))
+                                                LineTo(Vector(fastenerWidth / 2 + toothClearence,
+                                                              -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
+                                                              0))
 
-                                            AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 + toothClearence - toothKeyRoundingRadius,
-                                                                                    -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
-                                                                                    0),
-                                                                      point: Vector(fastenerWidth / 2 + toothClearence,
-                                                                                    -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
-                                                                                    0),
-                                                                      angle: .pi / 2,
-                                                                      axis: Vector(0, 0, 1))
+                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 + toothClearence - toothKeyRoundingRadius,
+                                                                                        -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
+                                                                                        0),
+                                                                          point: Vector(fastenerWidth / 2 + toothClearence,
+                                                                                        -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
+                                                                                        0),
+                                                                          angle: .pi / 2,
+                                                                          axis: Vector(0, 0, 1))
 
-                                            LineTo(Vector(0,
-                                                          -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness + toothKeyRoundingRadius,
-                                                          0))
+                                                LineTo(Vector(0,
+                                                              -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness + toothKeyRoundingRadius,
+                                                              0))
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            // left/right holes
-                            Decoration(color: .blue, hidden: y + 1 == yRange.upperBound) {
-                                // far left
-                                if x == xRange.lowerBound {
-                                    RelievedSlot(start: Vector(-state.size / 2 + state.thickness / 2 + state.holeClearence / 2,
-                                                               -hookWidth / 2 + hookDepth,
-                                                               0),
-                                                 end: Vector(-state.size / 2 + state.thickness / 2 + state.holeClearence / 2,
-                                                             +hookWidth / 2 + state.holeClearence * 2 + hookDepth,
-                                                             0),
-                                                 width: -Vector(state.thickness / 2 + state.holeClearence / 2,
-                                                                0,
-                                                                0),
-                                                 reliefDepth: toothReliefDepth,
-                                                 reliefRadius: toothReliefRadius)
-                                }
+                                // left/right holes
+                                Decoration(hidden: y + 1 == yRange.upperBound) {
+                                    // far left
+                                    if x == xRange.lowerBound {
+                                        RelievedSlot(start: Vector(-state.size / 2 + state.thickness / 2 + state.holeClearence / 2,
+                                                                   -hookWidth / 2 + hookDepth,
+                                                                   0),
+                                                     end: Vector(-state.size / 2 + state.thickness / 2 + state.holeClearence / 2,
+                                                                 +hookWidth / 2 + state.holeClearence * 2 + hookDepth,
+                                                                 0),
+                                                     width: -Vector(state.thickness / 2 + state.holeClearence / 2,
+                                                                    0,
+                                                                    0),
+                                                     reliefDepth: toothReliefDepth,
+                                                     reliefRadius: toothReliefRadius)
+                                    }
 
-                                // far right
-                                if x == xRange.upperBound - 1 {
-                                    RelievedSlot(start: Vector(+state.size / 2 - state.thickness / 2 - state.holeClearence / 2,
-                                                               -hookWidth / 2 + hookDepth,
-                                                               0),
-                                                 end: Vector(+state.size / 2 - state.thickness / 2 - state.holeClearence / 2,
-                                                             +hookWidth / 2 + state.holeClearence * 2 + hookDepth,
-                                                             0),
-                                                 width: -Vector(state.thickness / 2 + state.holeClearence / 2,
-                                                                0,
-                                                                0),
-                                                 reliefDepth: toothReliefDepth,
-                                                 reliefRadius: toothReliefRadius)
-                                }
+                                    // far right
+                                    if x == xRange.upperBound - 1 {
+                                        RelievedSlot(start: Vector(+state.size / 2 - state.thickness / 2 - state.holeClearence / 2,
+                                                                   -hookWidth / 2 + hookDepth,
+                                                                   0),
+                                                     end: Vector(+state.size / 2 - state.thickness / 2 - state.holeClearence / 2,
+                                                                 +hookWidth / 2 + state.holeClearence * 2 + hookDepth,
+                                                                 0),
+                                                     width: -Vector(state.thickness / 2 + state.holeClearence / 2,
+                                                                    0,
+                                                                    0),
+                                                     reliefDepth: toothReliefDepth,
+                                                     reliefRadius: toothReliefRadius)
+                                    }
 
-                                // middle
-                                if x != xRange.lowerBound {
-                                    RelievedSlot(start: Vector(-state.size / 2,
-                                                               -hookWidth / 2 + hookDepth,
-                                                               0),
-                                                 end: Vector(-state.size / 2,
-                                                             +hookWidth / 2 + state.holeClearence * 2 + hookDepth,
-                                                             0),
-                                                 width: -Vector(state.thickness + state.holeClearence,
-                                                                0,
-                                                                0),
-                                                 reliefDepth: toothReliefDepth,
-                                                 reliefRadius: toothReliefRadius)
+                                    // middle
+                                    if x != xRange.lowerBound {
+                                        RelievedSlot(start: Vector(-state.size / 2,
+                                                                   -hookWidth / 2 + hookDepth,
+                                                                   0),
+                                                     end: Vector(-state.size / 2,
+                                                                 +hookWidth / 2 + state.holeClearence * 2 + hookDepth,
+                                                                 0),
+                                                     width: -Vector(state.thickness + state.holeClearence,
+                                                                    0,
+                                                                    0),
+                                                     reliefDepth: toothReliefDepth,
+                                                     reliefRadius: toothReliefRadius)
+                                    }
                                 }
                             }
                         }

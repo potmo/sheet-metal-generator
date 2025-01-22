@@ -66,6 +66,87 @@ struct SheetMetalGenerator: App {
                 NSPasteboard.general.setString(string, forType: .string)
             }
 
+            Button("Shell DXF all") {
+                let normals = [
+                    (0, 0, Vector(0.2673, 0.1397, 0.9534)),
+                    (0, 1, Vector(0.2650, 0.1686, 0.9494)),
+                    (0, 2, Vector(0.2625, 0.1971, 0.9446)),
+                    (0, 3, Vector(0.2599, 0.2251, 0.9390)),
+                    (0, 4, Vector(0.2571, 0.2528, 0.9327)),
+                    (1, 0, Vector(0.0774, 0.1560, 0.9847)),
+                    (1, 1, Vector(0.2369, 0.1709, 0.9564)),
+                    (1, 2, Vector(0.0762, 0.2142, 0.9738)),
+                    (1, 3, Vector(0.1307, 0.2393, 0.9621)),
+                    (1, 4, Vector(0.0747, 0.2705, 0.9598)),
+                    (2, 0, Vector(-0.1811, 0.1461, 0.9726)),
+                    (2, 1, Vector(-0.0133, 0.1862, 0.9824)),
+                    (2, 2, Vector(-0.1768, 0.2042, 0.9628)),
+                    (2, 3, Vector(-0.0127, 0.2436, 0.9698)),
+                    (2, 4, Vector(-0.1721, 0.2606, 0.9500)),
+                    (3, 0, Vector(0.0136, 0.1568, 0.9875)),
+                    (3, 1, Vector(0.0133, 0.1862, 0.9824)),
+                    (3, 2, Vector(0.0130, 0.2152, 0.9765)),
+                    (3, 3, Vector(0.1234, 0.2381, 0.9634)),
+                    (3, 4, Vector(0.0125, 0.2715, 0.9624)),
+                    (4, 0, Vector(0.1514, 0.1481, 0.9773)),
+                    (4, 1, Vector(0.1494, 0.1775, 0.9727)),
+                    (4, 2, Vector(0.1473, 0.2064, 0.9673)),
+                    (4, 3, Vector(0.1451, 0.2349, 0.9611)),
+                    (4, 4, Vector(0.1429, 0.2629, 0.9542)),
+                ]
+                Task {
+                    for (x, y, normal) in normals {
+                        let dxfTarget = DXFRenderTarget()
+                        let maker = FromSidesView()
+
+                        let state = state
+
+                        state.firstLabel = "\(x)".leftpad(to: 3, with: "0") + " " + "\(y)".leftpad(to: 3, with: "0")
+                        state.staticNormal = normal
+
+                        let staticCamera = StaticCamera(position: Vector(0, 0, 200),
+                                                        rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
+
+                        let renderTransform = OrthographicTransform(camera: staticCamera)
+                        let context = RenderContext(canvasSize: Vector2D(1000, 1000),
+                                                    renderTarget: dxfTarget,
+                                                    transform2d: CGAffineTransform(scaleX: 1, y: 1),
+                                                    transform3d: renderTransform)
+                        let shapes = maker.shapes(from: state)
+                        shapes.forEach { $0.draw(in: context) }
+
+
+                        let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/test-generation5x5/box_\(x)_\(y).pdf",
+                                                   dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/test-generation5x5/box_\(x)_\(y).dxf",
+                                                   includeHeader: true)
+
+                        do {
+                            let program = string
+
+                            let task = Process()
+                            let pipe = Pipe()
+
+                            task.standardOutput = pipe
+                            task.standardError = pipe
+                            task.arguments = ["-c", program]
+                            task.executableURL = URL(fileURLWithPath: "/usr/local/bin/python3") // <--updated
+                            task.standardInput = nil
+
+                            try task.run()
+
+                            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                            let output = String(data: data, encoding: .utf8)!
+
+                            print(output)
+                            print("done \(x) \(y)")
+
+                        } catch {
+                            print("error \(error)")
+                        }
+                    }
+                }
+            }
+
             DoubleSlider(label: "Angle Slerp", value: $state.angleSlerp, range: 0.0 ... 1.0)
             Toggle(isOn: $state.showHorizontalFlatView) { Text("Horizontal") }
             Toggle(isOn: $state.showTopAlignedFlatView) { Text("Foldout") }
