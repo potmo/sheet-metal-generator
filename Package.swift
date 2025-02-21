@@ -18,6 +18,10 @@ let package = Package(name: "sheet-metal-generator",
                           .executableTarget(name: "sheet-metal-generator-exec",
                                             dependencies: [
                                                 .target(name: "sheet-metal-generator-lib"),
+                                            ],
+                                            resources: [
+                                                .copy("Resources/normals.json"),
+                                                .copy("Resources/mini-normals.json"),
                                             ]),
                           .target(name: "sheet-metal-generator-lib",
                                   dependencies: [

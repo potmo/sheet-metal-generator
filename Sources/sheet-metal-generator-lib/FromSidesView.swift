@@ -536,7 +536,7 @@ public struct FromSidesView: ShapeMaker {
                 if index == 2 {
                     Decoration(color: .yellow) {
                         PathNumber(number: state.firstLabel,
-                                   topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0) - perpDir.scaled(by: 5.0),
+                                   topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0),
                                    sideDirection: -dir,
                                    downDirection: perpDir,
                                    scale: 2.5,
@@ -682,8 +682,8 @@ public struct FromSidesView: ShapeMaker {
 
                 // base plate
                 Decoration(hidden: true) {
-                    let xRange = 0 ..< 5
-                    let yRange = 0 ..< (5 + 1)
+                    let xRange = 0 ..< 55
+                    let yRange = 0 ..< (55 + 1)
 
                     let baseplateOffset = Vector(0, 80, 0)
 
@@ -721,66 +721,62 @@ public struct FromSidesView: ShapeMaker {
                                     // make all but the bottom have some extra space to fit two tabs
                                     let extraSpace = y != 0 ? Vector(0, -state.thickness, 0) : Vector()
 
-                                    for flip in [true, false] {
-                                        Flip(at: Vector(0, -state.size / 2, 0), around: Vector(0, 1, 0), by: flip ? .pi : 0.0) {
-                                            Path {
-                                                MoveTo(Vector(0,
-                                                              -state.size / 2 + insideTabLength,
-                                                              0))
-                                                LineTo(Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
-                                                              -state.size / 2 + insideTabLength,
-                                                              0))
+                                    Path {
+                                        MoveTo(Vector(0,
+                                                      -state.size / 2 + insideTabLength,
+                                                      0))
+                                        LineTo(Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
+                                                      -state.size / 2 + insideTabLength,
+                                                      0))
 
-                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
-                                                                                        -state.size / 2 + insideTabLength - toothKeyRoundingRadius,
-                                                                                        0),
-                                                                          point: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
-                                                                                        -state.size / 2 + insideTabLength,
-                                                                                        0),
-                                                                          angle: .pi / 2,
-                                                                          axis: Vector(0, 0, -1))
+                                        AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
+                                                                                -state.size / 2 + insideTabLength - toothKeyRoundingRadius,
+                                                                                0),
+                                                                  point: Vector(fastenerHoleWidth / 2 - toothKeyRoundingRadius,
+                                                                                -state.size / 2 + insideTabLength,
+                                                                                0),
+                                                                  angle: .pi / 2,
+                                                                  axis: Vector(0, 0, -1))
 
-                                                LineTo(Vector(fastenerHoleWidth / 2,
-                                                              -state.size / 2,
-                                                              0) + extraSpace)
+                                        LineTo(Vector(fastenerHoleWidth / 2,
+                                                      -state.size / 2,
+                                                      0) + extraSpace)
 
-                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 + toothReliefRadius,
-                                                                                        -state.size / 2,
-                                                                                        0) + extraSpace,
-                                                                          point: Vector(fastenerHoleWidth / 2,
-                                                                                        -state.size / 2,
-                                                                                        0) + extraSpace,
-                                                                          angle: .pi,
-                                                                          axis: Vector(0, 0, 1))
-                                                LineTo(Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence, -state.size / 2, 0) + extraSpace)
+                                        AxisOrbitCounterClockwise(pivot: Vector(fastenerHoleWidth / 2 + toothReliefRadius,
+                                                                                -state.size / 2,
+                                                                                0) + extraSpace,
+                                                                  point: Vector(fastenerHoleWidth / 2,
+                                                                                -state.size / 2,
+                                                                                0) + extraSpace,
+                                                                  angle: .pi,
+                                                                  axis: Vector(0, 0, 1))
+                                        LineTo(Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence, -state.size / 2, 0) + extraSpace)
 
-                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 - toothReliefRadius + toothClearence,
-                                                                                        -state.size / 2,
-                                                                                        0) + extraSpace,
-                                                                          point: Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence,
-                                                                                        -state.size / 2,
-                                                                                        0) + extraSpace,
-                                                                          angle: .pi,
-                                                                          axis: Vector(0, 0, 1))
+                                        AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 - toothReliefRadius + toothClearence,
+                                                                                -state.size / 2,
+                                                                                0) + extraSpace,
+                                                                  point: Vector(fastenerWidth / 2 - toothReliefRadius * 2 + toothClearence,
+                                                                                -state.size / 2,
+                                                                                0) + extraSpace,
+                                                                  angle: .pi,
+                                                                  axis: Vector(0, 0, 1))
 
-                                                LineTo(Vector(fastenerWidth / 2 + toothClearence,
-                                                              -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
-                                                              0))
+                                        LineTo(Vector(fastenerWidth / 2 + toothClearence,
+                                                      -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
+                                                      0))
 
-                                                AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 + toothClearence - toothKeyRoundingRadius,
-                                                                                        -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
-                                                                                        0),
-                                                                          point: Vector(fastenerWidth / 2 + toothClearence,
-                                                                                        -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
-                                                                                        0),
-                                                                          angle: .pi / 2,
-                                                                          axis: Vector(0, 0, 1))
+                                        AxisOrbitCounterClockwise(pivot: Vector(fastenerWidth / 2 + toothClearence - toothKeyRoundingRadius,
+                                                                                -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
+                                                                                0),
+                                                                  point: Vector(fastenerWidth / 2 + toothClearence,
+                                                                                -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness,
+                                                                                0),
+                                                                  angle: .pi / 2,
+                                                                  axis: Vector(0, 0, 1))
 
-                                                LineTo(Vector(0,
-                                                              -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness + toothKeyRoundingRadius,
-                                                              0))
-                                            }
-                                        }
+                                        LineTo(Vector(0,
+                                                      -state.size / 2 + hookDepth + toothClearence * 2 + state.thickness + toothKeyRoundingRadius,
+                                                      0))
                                     }
                                 }
 
