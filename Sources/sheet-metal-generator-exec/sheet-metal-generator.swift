@@ -100,6 +100,8 @@ struct SheetMetalGenerator: App {
                     let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece2/generated.pdf",
                                                dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece2/generated.dxf",
                                                includeHeader: true)
+
+                    print(string)
                      Self.runDXFProgram(string: string)
                     print("done")
                 }

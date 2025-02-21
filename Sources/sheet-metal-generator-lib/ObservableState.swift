@@ -11,7 +11,7 @@ public class InputState: ObservableObject {
     @PublishedAppStorage("gap_scalar") public var gapScalar = 1.5
     @PublishedAppStorage("hole_clearence") public var holeClearence = 0.2
     @PublishedAppStorage("fastener_thickness") public var fastenerThickness = 0.25
-    @PublishedAppStorage("fastener_width") public var fastenerWidth = 4.6
+    @PublishedAppStorage("fastener_width") public var fastenerWidth = 16.0
 
     @PublishedAppStorage("k_factor") public var kFactor = 0.44
     @PublishedAppStorage("angle_around_x") public var angleAroundX = 0.0
@@ -34,8 +34,7 @@ public class InputState: ObservableObject {
 
     public var staticNormal: Vector? = nil
 
-    public var firstLabel = "123 456"
-
+    public var firstLabel = "123 4567890"
 
     public init() {
     }
@@ -88,11 +87,21 @@ public class InputState: ObservableObject {
         let showFolded: Bool
         let show3dView: Bool
         let fullScreenTop: Bool
+        let insideTabLength: Double
+
+        let fastenerHoleWidth: Double
+        let hookWidth: Double
+        let hookDepth: Double
+        let hookIntoSlotOffset: Double
+        let fastenerExtraHeight: Double
+        let toothKeyRoundingRadius: Double
+        let toothClearence: Double
+        let toothReliefRadius: Double
+        let toothReliefDepth: Double
 
         let topFaceNormal: Vector
 
         let firstLabel: String
-        
 
         init(size: Double,
              height: Double,
@@ -140,6 +149,17 @@ public class InputState: ObservableObject {
             self.fullScreenTop = fullScreenTop
             self.firstLabel = firstLabel
 
+            self.insideTabLength = thickness * 3
+            self.fastenerHoleWidth = 6.0
+            self.hookWidth = 10.0
+            self.hookDepth = 6.0
+            self.hookIntoSlotOffset = 0.0
+            self.fastenerExtraHeight = bottomPlateThickness + thickness * 1
+            self.toothKeyRoundingRadius = 1.0
+
+            self.toothClearence = holeClearence
+            self.toothReliefRadius = thickness * 0.7
+            self.toothReliefDepth = thickness * 0.5
 
             if let staticNormal {
                 self.topFaceNormal = staticNormal
