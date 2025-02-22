@@ -525,13 +525,13 @@ public struct FromSidesView: ShapeMaker {
                 let fullWidth = (end - start).length
 
                 // add label
-                if index == 2 {
+                if index == 0 {
                     PathNumber(number: state.firstLabel,
-                               topCorner: end - dir.scaled(by: 2.0) - perpDir.scaled(by: 5.0),
-                               sideDirection: -dir,
-                               downDirection: perpDir,
-                               scale: 2.5,
-                               spacing: 0.75)
+                               topCorner: start + dir.scaled(by: fullWidth / 2.0 - 5 * 0.8 * 5 / 2) - perpDir.scaled(by: 3.0),
+                               sideDirection: dir,
+                               downDirection: -perpDir,
+                               scale: 5.0,
+                               spacing: 0.8)
                 }
 
                 // offset everything to take account for the side overlap

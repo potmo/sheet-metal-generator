@@ -94,20 +94,53 @@ struct SheetMetalGenerator: App {
                                                 renderTarget: dxfTarget,
                                                 transform2d: CGAffineTransform(scaleX: 1, y: 1),
                                                 transform3d: renderTransform)
-                    let shapes =  maker.shapes(from: state)
+                    let shapes = maker.shapes(from: state)
                     shapes.forEach { $0.draw(in: context) }
 
-                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece2/generated.pdf",
-                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece2/generated.dxf",
+                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/generated.pdf",
+                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/generated.dxf",
                                                includeHeader: true)
 
                     print(string)
-                     Self.runDXFProgram(string: string)
+                    Self.runDXFProgram(string: string)
                     print("done")
                 }
             }
 
-            Button("Shell DXF all") {
+            Button("DXF baseplate") {
+                Task {
+                    let dxfTarget = DXFRenderTarget()
+
+                    let normals: [MirrorNormal] = JsonNormals.normals
+
+                    let width = normals.filter { $0.mirror == 2 }.map(\.x).max() ?? 0
+                    let height = normals.filter { $0.mirror == 2 }.map(\.y).max() ?? 0
+
+                    let maker = BasePlateView(width: width + 1, height: height + 1)
+                    print("make dxf")
+
+                    let staticCamera = StaticCamera(position: Vector(0, 0, 200),
+                                                    rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
+
+                    let renderTransform = OrthographicTransform(camera: staticCamera)
+                    let context = RenderContext(canvasSize: Vector2D(1000, 1000),
+                                                renderTarget: dxfTarget,
+                                                transform2d: CGAffineTransform(scaleX: 1, y: 1),
+                                                transform3d: renderTransform)
+                    let shapes = maker.shapes(from: state)
+                    shapes.forEach { $0.draw(in: context) }
+
+                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/baseplate.pdf",
+                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/baseplate.dxf",
+                                               includeHeader: true)
+
+                    print(string)
+                    Self.runDXFProgram(string: string)
+                    print("done")
+                }
+            }
+
+            Button("DXF all") {
                 Task {
                     var normals: [MirrorNormal] = JsonNormals.normals
 
@@ -128,7 +161,7 @@ struct SheetMetalGenerator: App {
                                 normals.removeFirst()
 
                                 let state = state
-                                state.firstLabel = "\(mirror.mirror)" + " " + "\(mirror.x)".leftpad(to: 2, with: "0") + " " + "\(mirror.y)".leftpad(to: 2, with: "0")
+                                state.firstLabel = "\(mirror.mirror)" + "\(mirror.x)".leftpad(to: 2, with: "0") + "\(mirror.y)".leftpad(to: 2, with: "0")
                                 state.staticNormal = mirror.normal
 
                                 let staticCamera = StaticCamera(position: Vector(0, 0, 200),
@@ -154,37 +187,7 @@ struct SheetMetalGenerator: App {
                             }
                         }
 
-                        /*
-                         struct BoxDrawer: ShapeMaker {
-                             public typealias StateType = InputState
-
-                             public init() {
-                             }
-
-                             @CanvasBuilder
-                             public func shapes(from state: StateType) -> [DrawableShape] {
-                                 Polygon(vertices: [
-                                     Vector(0, 0, 0),
-                                     Vector(3000, 0, 0),
-                                     Vector(3000, 1500, 0),
-                                     Vector(0, 1500, 0),
-                                     Vector(0, 0, 0),
-                                 ])
-                             }
-                         }
-
-                         let staticCamera = StaticCamera(position: Vector(0, 0, 200),
-                                                         rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
-
-                         let renderTransform = OrthographicTransform(camera: staticCamera)
-                         let context = RenderContext(canvasSize: Vector2D(1000, 1000),
-                                                     renderTarget: dxfTarget,
-                                                     transform2d: CGAffineTransform(scaleX: 1, y: 1),
-                                                     transform3d: renderTransform)
-                         BoxDrawer().shapes(from: state).forEach { $0.draw(in: context) }
-                         */
-
-                        let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/box_all_\(number).pdf",
+                        let string = dxfTarget.dxf(pdfFileName: nil,
                                                    dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/box_all_\(number).dxf",
                                                    includeHeader: true)
 

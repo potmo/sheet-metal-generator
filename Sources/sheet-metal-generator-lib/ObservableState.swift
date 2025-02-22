@@ -34,7 +34,7 @@ public class InputState: ObservableObject {
 
     public var staticNormal: Vector? = nil
 
-    public var firstLabel = "123 4567890"
+    public var firstLabel = "03 48"
 
     public init() {
     }
