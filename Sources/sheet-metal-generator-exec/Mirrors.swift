@@ -5,7 +5,7 @@ enum JsonNormals {
     static var normals: [MirrorNormal] {
         let decoder = JSONDecoder()
 
-        let path = Bundle.module.path(forResource: "mini-normals", ofType: "json")
+        let path = Bundle.module.path(forResource: "normals", ofType: "json")
         let string = try! String(contentsOfFile: path!, encoding: String.Encoding.utf8)
         let data = string.data(using: .utf8)!
 

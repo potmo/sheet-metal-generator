@@ -82,7 +82,7 @@ struct SheetMetalGenerator: App {
 
             Button("DXF") {
                 Task {
-                    let dxfTarget = DXFRenderTarget()
+                    let dxfTarget = DXFLWLineRenderTarget()
                     let maker = FromSidesView()
                     print("make dxf")
 
@@ -109,7 +109,7 @@ struct SheetMetalGenerator: App {
 
             Button("DXF baseplate") {
                 Task {
-                    let dxfTarget = DXFRenderTarget()
+                    let dxfTarget = DXFLWLineRenderTarget()
 
                     let normals: [MirrorNormal] = JsonNormals.normals
 
@@ -134,7 +134,6 @@ struct SheetMetalGenerator: App {
                                                dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/baseplate.dxf",
                                                includeHeader: true)
 
-                    print(string)
                     Self.runDXFProgram(string: string)
                     print("done")
                 }
@@ -149,7 +148,7 @@ struct SheetMetalGenerator: App {
                     var number = 0
 
                     while !normals.isEmpty {
-                        let dxfTarget = DXFRenderTarget()
+                        let dxfTarget = DXFLWLineRenderTarget()
                         let maker = FromSidesView()
 
                         number += 1
@@ -249,6 +248,21 @@ struct SheetMetalGenerator: App {
                            maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StateObjectCamera(state: state)))
             } else {
+                let view = FromSidesView()
+                let dxfTarget = DXFLWLineRenderTarget()
+                let state = state
+
+                let staticCamera = StaticCamera(position: Vector(0, 0, 200),
+                                                rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
+
+                let renderTransform = OrthographicTransform(camera: staticCamera)
+                let context = RenderContext(canvasSize: Vector2D(1000, 1000),
+                                            renderTarget: dxfTarget,
+                                            transform2d: CGAffineTransform(scaleX: 1, y: 1),
+                                            transform3d: renderTransform)
+
+                let _ = view.shapes(from: state).forEach { $0.draw(in: context) }
+
                 CanvasView(state: state,
                            maker: FromSidesView(),
                            renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 20),

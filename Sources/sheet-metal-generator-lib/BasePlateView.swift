@@ -39,8 +39,9 @@ public struct BasePlateView: ShapeMaker {
                 bottom + width,
                 bottom + width + height,
                 bottom + height,
+                bottom
             ],
-            closed: true)
+            closed: false)
         }
 
         // base board holes
