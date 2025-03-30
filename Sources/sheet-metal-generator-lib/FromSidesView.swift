@@ -486,8 +486,36 @@ public struct FromSidesView: ShapeMaker {
                 LineSection(from: sideInnerTopNeutral0Projected, to: sideOuterTopNeutral0Projected)
                 LineSection(from: sideInnerTopNeutral1Projected, to: sideOuterTopNeutral1Projected)
 
+                let sideLegVector0 = sideOuterBottomNeutral0Projected - sideOuterTopNeutral0Projected
+                let sideLegVector1 = sideOuterBottomNeutral1Projected - sideOuterTopNeutral1Projected
+                if sideLegVector0.normalized.dot(sideNormal) <= 0 {
+                    CodeBlock { _ in
+                        fatalError("warning: side inverted with: \(sideLegVector0.length)")
+                    }
+                }
+
+                if sideLegVector0.length <= 10 {
+                    CodeBlock { _ in
+                        fatalError("warning: side too short: \(sideLegVector0.length)")
+                    }
+                }
+
+                if sideLegVector1.normalized.dot(sideNormal) <= 0 {
+                    CodeBlock { _ in
+                        fatalError("warning: side inverted  with: \(sideLegVector1.length)")
+                    }
+                }
+
+                if sideLegVector1.length <= 10 {
+                    CodeBlock { _ in
+                        fatalError("warning: side too short: \(sideLegVector1.length)")
+                    }
+                }
+
                 // to side bottom
+
                 LineSection(from: sideOuterTopNeutral0Projected, to: sideOuterBottomNeutral0Projected)
+
                 LineSection(from: sideOuterTopNeutral1Projected, to: sideOuterBottomNeutral1Projected)
 
                 // bottom edge

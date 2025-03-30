@@ -97,8 +97,8 @@ struct SheetMetalGenerator: App {
                     let shapes = maker.shapes(from: state)
                     shapes.forEach { $0.draw(in: context) }
 
-                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/generated.pdf",
-                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/generated.dxf",
+                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/generated.pdf",
+                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/generated.dxf",
                                                includeHeader: true)
 
                     print(string)
@@ -123,15 +123,15 @@ struct SheetMetalGenerator: App {
                                                     rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
 
                     let renderTransform = OrthographicTransform(camera: staticCamera)
-                    let context = RenderContext(canvasSize: Vector2D(1000, 1000),
+                    let context = RenderContext(canvasSize: Vector2D(1500, 1500),
                                                 renderTarget: dxfTarget,
                                                 transform2d: CGAffineTransform(scaleX: 1, y: 1),
                                                 transform3d: renderTransform)
                     let shapes = maker.shapes(from: state)
                     shapes.forEach { $0.draw(in: context) }
 
-                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/baseplate.pdf",
-                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/baseplate.dxf",
+                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/baseplate.pdf",
+                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/baseplate.dxf",
                                                includeHeader: true)
 
                     Self.runDXFProgram(string: string)
@@ -143,17 +143,27 @@ struct SheetMetalGenerator: App {
                 Task {
                     var normals: [MirrorNormal] = JsonNormals.normals
 
+                    normals.sort(by: { a, b in
+                        if a.mirror != b.mirror {
+                            return a.mirror < b.mirror
+                        } else if a.x != b.x {
+                            return a.x < b.x
+                        }
+                        return a.y < b.y
+
+                    })
+
                     let width = 35
                     let height = 21
-                    var number = 0
+                    var planeNumber = 0
 
                     while !normals.isEmpty {
                         let dxfTarget = DXFLWLineRenderTarget()
                         let maker = FromSidesView()
 
-                        number += 1
-                        outer: for x in 0 ... width {
-                            for y in 0 ... height {
+                        planeNumber += 1
+                        outer: for y in 0 ... height {
+                            for x in 0 ... width {
                                 guard let mirror: MirrorNormal = normals.first else {
                                     break outer
                                 }
@@ -175,19 +185,22 @@ struct SheetMetalGenerator: App {
                                 let dist = 80.0
                                 let xOffset = 30.0 + dist / 2.0 + Double(x) * dist + (y.isMultiple(of: 2) ? 0.0 : (dist / 2.0))
                                 let yOffset = 30.0 + dist / 2.0 + Double(y) * dist * 0.8
-                                let shapes = Offset(Vector(xOffset, yOffset, 0)) {
+                                let shapes = Offset(Vector(xOffset, -yOffset, 0)) {
                                     for shape in maker.shapes(from: state) {
                                         shape
                                     }
                                 }
                                 shapes.draw(in: context)
+                                dxfTarget.makeCurrentOpenNodesImmutable()
 
-                                print("done \(state.firstLabel)")
+                                print("done plate \(planeNumber) - \(x),\(y), label: \"\(state.firstLabel)\", \(normals.count) left")
                             }
                         }
 
+                        print("done plate \(planeNumber)")
+
                         let string = dxfTarget.dxf(pdfFileName: nil,
-                                                   dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/box_all_\(number).dxf",
+                                                   dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/box_all_\(planeNumber).dxf",
                                                    includeHeader: true)
 
                         Self.runDXFProgram(string: string)
@@ -249,22 +262,26 @@ struct SheetMetalGenerator: App {
                            renderTransform: OrthographicTransform(camera: StateObjectCamera(state: state)))
             } else {
                 let view = FromSidesView()
-                let dxfTarget = DXFLWLineRenderTarget()
+                // let view = BasePlateView(width: 55, height: 55)
+
                 let state = state
 
-                let staticCamera = StaticCamera(position: Vector(0, 0, 200),
-                                                rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
+                /*
+                  let dxfTarget = DXFLWLineRenderTarget()
+                 let staticCamera = StaticCamera(position: Vector(0, 0, 200),
+                                                 rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
 
-                let renderTransform = OrthographicTransform(camera: staticCamera)
-                let context = RenderContext(canvasSize: Vector2D(1000, 1000),
-                                            renderTarget: dxfTarget,
-                                            transform2d: CGAffineTransform(scaleX: 1, y: 1),
-                                            transform3d: renderTransform)
+                 let renderTransform = OrthographicTransform(camera: staticCamera)
+                 let context = RenderContext(canvasSize: Vector2D(1000, 1000),
+                                             renderTarget: dxfTarget,
+                                             transform2d: CGAffineTransform(scaleX: 1, y: 1),
+                                             transform3d: renderTransform)
 
-                let _ = view.shapes(from: state).forEach { $0.draw(in: context) }
+                 let _ = view.shapes(from: state).forEach { $0.draw(in: context) }
+                 */
 
                 CanvasView(state: state,
-                           maker: FromSidesView(),
+                           maker: view,
                            renderTransform: OrthographicTransform(camera: StaticCamera(position: Vector(0, 0, 20),
                                                                                        rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))))
             }

@@ -66,7 +66,7 @@ public class InputState: ObservableObject {
                       firstLabel: firstLabel)
     }
 
-    public struct Frozen {
+    public struct Frozen: Sendable {
         let size: Double
         let height: Double
         let thickness: Double
