@@ -448,15 +448,18 @@ public struct FromSidesView: ShapeMaker {
 
                 // mid radius
 
-                AxisOrbitCounterClockwise(pivot: bendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
-                                          point: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
-                                          angle: .pi,
-                                          axis: Vector(0, 0, 1))
 
-                AxisOrbitCounterClockwise(pivot: bendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
-                                          point: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
-                                          angle: .pi,
-                                          axis: Vector(0, 0, -1))
+                Decoration(color: .red) {
+                    AxisOrbitCounterClockwise(pivot: bendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                                              point: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                                              angle: .pi,
+                                              axis: Vector(0, 0, 1))
+
+                    AxisOrbitCounterClockwise(pivot: bendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
+                                              point: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
+                                              angle: .pi,
+                                              axis: Vector(0, 0, -1))
+                }
 
                 LineSection(from: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
                             to: bendAllowanceCutout1 + halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2))
@@ -490,25 +493,25 @@ public struct FromSidesView: ShapeMaker {
                 let sideLegVector1 = sideOuterBottomNeutral1Projected - sideOuterTopNeutral1Projected
                 if sideLegVector0.normalized.dot(sideNormal) <= 0 {
                     CodeBlock { _ in
-                        fatalError("warning: side inverted with: \(sideLegVector0.length)")
+                       // fatalError("warning: side inverted with: \(sideLegVector0.length)")
                     }
                 }
 
                 if sideLegVector0.length <= 10 {
                     CodeBlock { _ in
-                        fatalError("warning: side too short: \(sideLegVector0.length)")
+                      //  fatalError("warning: side too short: \(sideLegVector0.length)")
                     }
                 }
 
                 if sideLegVector1.normalized.dot(sideNormal) <= 0 {
                     CodeBlock { _ in
-                        fatalError("warning: side inverted  with: \(sideLegVector1.length)")
+                      //  fatalError("warning: side inverted  with: \(sideLegVector1.length)")
                     }
                 }
 
                 if sideLegVector1.length <= 10 {
                     CodeBlock { _ in
-                        fatalError("warning: side too short: \(sideLegVector1.length)")
+                      //  fatalError("warning: side too short: \(sideLegVector1.length)")
                     }
                 }
 

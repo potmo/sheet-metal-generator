@@ -67,7 +67,7 @@ public struct BasePlateView: ShapeMaker {
                     let holeEveryMultiple = 6
                     if y < yRange.upperBound - 1, (x.isMultiple(of: holeEveryMultiple) && y.isMultiple(of: holeEveryMultiple)) || ((x + 3).isMultiple(of: holeEveryMultiple) && (y + 3).isMultiple(of: holeEveryMultiple)) {
                         let holePosition = Vector(0, 4.4, 0)
-                        let holeSize = 4.0
+                        let holeSize = 2.0
                         AxisOrbitCounterClockwise(pivot: holePosition, point: holePosition + Vector(0, -holeSize, 0), angle: .pi * 2, axis: Vector(0, 0, 1))
                     }
 

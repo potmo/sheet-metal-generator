@@ -111,10 +111,11 @@ struct SheetMetalGenerator: App {
                 Task {
                     let dxfTarget = DXFLWLineRenderTarget()
 
+                    self.state.size = 26
                     let normals: [MirrorNormal] = JsonNormals.normals
 
-                    let width = normals.filter { $0.mirror == 2 }.map(\.x).max() ?? 0
-                    let height = normals.filter { $0.mirror == 2 }.map(\.y).max() ?? 0
+                    let width = normals.filter { $0.mirror == 1 }.map(\.x).max() ?? 0
+                    let height = normals.filter { $0.mirror == 1 }.map(\.y).max() ?? 0
 
                     let maker = BasePlateView(width: width + 1, height: height + 1)
                     print("make dxf")
@@ -141,6 +142,8 @@ struct SheetMetalGenerator: App {
 
             Button("DXF all") {
                 Task {
+                    self.state.size = 25.9
+
                     var normals: [MirrorNormal] = JsonNormals.normals
 
                     normals.sort(by: { a, b in
@@ -262,7 +265,7 @@ struct SheetMetalGenerator: App {
                            renderTransform: OrthographicTransform(camera: StateObjectCamera(state: state)))
             } else {
                 let view = FromSidesView()
-                // let view = BasePlateView(width: 55, height: 55)
+                // let view = BasePlateView(width: 5, height: 5) // 55,55
 
                 let state = state
 

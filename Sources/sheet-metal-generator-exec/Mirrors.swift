@@ -1,5 +1,6 @@
 import CanvasRender
 import Foundation
+import simd
 
 enum JsonNormals {
     static var normals: [MirrorNormal] {
@@ -15,6 +16,41 @@ enum JsonNormals {
             fatalError("error: \(error)")
         }
     }
+
+    static func testNormals(size: Double) -> [MirrorNormal] {
+        var normals: [MirrorNormal] = []
+        let maxDist = 3.0 * size
+        let plateCenter = Vector(2.0, 2.0, 0).scaled(by: size)
+        for y in 0 ..< 5 {
+            for x in 0 ..< 5 {
+                if x == 2, y == 2 {
+                    let mirror = MirrorNormal(mirror: 1,
+                                              x: x,
+                                              y: y,
+                                              normal: Vector(0, 0, 1))
+                    normals.append(mirror)
+                    continue
+                }
+
+                // let dist = abs(x - 3) > abs(y - 3) ? Double(abs(x - 3)) : Double(abs(y - 3))
+
+                let mirrorCenterPoint = Vector(Double(x), Double(y), 0).scaled(by: size)
+                let dist = mirrorCenterPoint.distance(to: plateCenter)
+                let distScaled = dist / maxDist
+                let directionToCenter = (plateCenter - mirrorCenterPoint).normalized
+                let rotationAxis = directionToCenter.cross(Vector(0, 0, 1))
+
+                let rotation = simd_quatd(angle: 20.0.degreesToRadians * distScaled, axis: rotationAxis)
+                let normal = rotation.act(Vector(0, 0, 1))
+
+                let mirror = MirrorNormal(mirror: 1, x: x, y: y, normal: normal)
+                normals.append(mirror)
+
+                print("x: \(x), y: \(y), normal: \(normal.toFixed(2)), distScaled: \(distScaled), \(dist)")
+            }
+        }
+        return normals
+    }
 }
 
 struct MirrorNormal: Codable {
@@ -22,6 +58,13 @@ struct MirrorNormal: Codable {
     let x: Int
     let y: Int
     let normal: Vector
+
+    init(mirror: Int, x: Int, y: Int, normal: Vector) {
+        self.mirror = mirror
+        self.x = x
+        self.y = y
+        self.normal = normal
+    }
 
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
