@@ -111,7 +111,10 @@ struct SheetMetalGenerator: App {
                 Task {
                     let dxfTarget = DXFLWLineRenderTarget()
 
+                    let oldSize = state.size
+                    let oldThickness = state.thickness
                     self.state.size = 26
+                    self.state.thickness = 1.1
                     let normals: [MirrorNormal] = JsonNormals.normals
 
                     let width = normals.filter { $0.mirror == 1 }.map(\.x).max() ?? 0
@@ -137,11 +140,15 @@ struct SheetMetalGenerator: App {
 
                     Self.runDXFProgram(string: string)
                     print("done")
+
+                    self.state.size = oldSize
+                    self.state.thickness = oldThickness
                 }
             }
 
             Button("DXF all") {
                 Task {
+                    let oldSize = self.state.size
                     self.state.size = 25.9
 
                     var normals: [MirrorNormal] = JsonNormals.normals
@@ -155,6 +162,12 @@ struct SheetMetalGenerator: App {
                         return a.y < b.y
 
                     })
+
+                    /*
+                     normals = normals.filter { a in
+                         a.x <= 4 && a.y <= 4 && a.mirror == 1
+                     }
+                      */
 
                     let width = 35
                     let height = 21
@@ -207,7 +220,10 @@ struct SheetMetalGenerator: App {
                                                    includeHeader: true)
 
                         Self.runDXFProgram(string: string)
+
+                        self.state.size = oldSize
                     }
+
                     print("all plates done")
                 }
             }

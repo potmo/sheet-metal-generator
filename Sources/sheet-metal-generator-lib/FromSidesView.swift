@@ -134,11 +134,16 @@ public struct FromSidesView: ShapeMaker {
 
             let straightLeft = Vector(0, 0, 1).cross(sideNormal)
 
-            let rightSidePadding = state.thickness * state.gapScalar
+            let rightSidePadding: Double = if index % 2 == 0 {
+                state.thickness * state.gapScalar
+            } else {
+                0.0
+            }
 
             let sideInnerTopUnderside0 = topUndersideEdge.vertex0 + relativePivotPoint + sideNormal.scaled(by: state.bendRadius) // bendRotationDown.act(-relativePivotPoint)
             let sidePaddingAlongTopNormal0 = prescaledPlane.edges[index].vertex0 - sideInnerTopUnderside0
             let sidePaddingHorizontal0 = sidePaddingAlongTopNormal0.projected(onto: straightLeft).extended(by: state.thickness)
+                .extended(by: -rightSidePadding)
             let sideOuterTopUnderside0 = sideInnerTopUnderside0 + sidePaddingHorizontal0
 
             let sideInnerTopOverside0 = sideInnerTopUnderside0 + sideNormal.scaled(by: state.thickness)
@@ -159,7 +164,7 @@ public struct FromSidesView: ShapeMaker {
             let sideInnerTopNeutral1 = sideInnerTopUnderside1 + sideNormal.scaled(by: state.thickness * state.kFactor)
             let sideOuterTopNeutral1 = sideOuterTopUnderside1 + sideNormal.scaled(by: state.thickness * state.kFactor)
 
-            let sideOuterBottomUnderside0 = bottomInsideEdge.vertex0 + straightLeft.scaled(by: state.thickness)
+            let sideOuterBottomUnderside0 = bottomInsideEdge.vertex0 + straightLeft.scaled(by: state.thickness - rightSidePadding)
             let sideOuterBottomUnderside1 = bottomInsideEdge.vertex1 - straightLeft.scaled(by: state.thickness - rightSidePadding)
 
             let sideOuterBottomOverside0 = sideOuterBottomUnderside0 + sideNormal.scaled(by: state.thickness)
@@ -432,6 +437,7 @@ public struct FromSidesView: ShapeMaker {
                 let right = (lidNeutralCorner1Projected - lidNeutralCorner0Projected).normalized
                 let tabSize = 2.0
                 // left radius
+
                 AxisOrbitCounterClockwise(pivot: bendAllowanceCutout0, point: sideInnerTopNeutral0Projected,
                                           angle: .pi,
                                           axis: Vector(0, 0, -1))
@@ -442,28 +448,8 @@ public struct FromSidesView: ShapeMaker {
                                           axis: Vector(0, 0, 1))
 
                 LineSection(from: bendAllowanceCutout0 + halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
-                            to: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius))
-                LineSection(from: bendAllowanceCutout0 - halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
-                            to: bendAllowanceMid - halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius))
-
-                // mid radius
-
-
-                Decoration(color: .red) {
-                    AxisOrbitCounterClockwise(pivot: bendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
-                                              point: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
-                                              angle: .pi,
-                                              axis: Vector(0, 0, 1))
-
-                    AxisOrbitCounterClockwise(pivot: bendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
-                                              point: bendAllowanceMid + halfBendAllowanceMid - right.scaled(by: tabSize / 2 + radius),
-                                              angle: .pi,
-                                              axis: Vector(0, 0, -1))
-                }
-
-                LineSection(from: bendAllowanceMid + halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
                             to: bendAllowanceCutout1 + halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2))
-                LineSection(from: bendAllowanceMid - halfBendAllowanceMid + right.scaled(by: tabSize / 2 + radius),
+                LineSection(from: bendAllowanceCutout0 - halfBendAllowanceMid + right.scaled(by: tabSize + radius * 2),
                             to: bendAllowanceCutout1 - halfBendAllowanceMid - right.scaled(by: tabSize + radius * 2))
 
                 // right view
@@ -493,25 +479,25 @@ public struct FromSidesView: ShapeMaker {
                 let sideLegVector1 = sideOuterBottomNeutral1Projected - sideOuterTopNeutral1Projected
                 if sideLegVector0.normalized.dot(sideNormal) <= 0 {
                     CodeBlock { _ in
-                       // fatalError("warning: side inverted with: \(sideLegVector0.length)")
+                        // fatalError("warning: side inverted with: \(sideLegVector0.length)")
                     }
                 }
 
                 if sideLegVector0.length <= 10 {
                     CodeBlock { _ in
-                      //  fatalError("warning: side too short: \(sideLegVector0.length)")
+                        //  fatalError("warning: side too short: \(sideLegVector0.length)")
                     }
                 }
 
                 if sideLegVector1.normalized.dot(sideNormal) <= 0 {
                     CodeBlock { _ in
-                      //  fatalError("warning: side inverted  with: \(sideLegVector1.length)")
+                        //  fatalError("warning: side inverted  with: \(sideLegVector1.length)")
                     }
                 }
 
                 if sideLegVector1.length <= 10 {
                     CodeBlock { _ in
-                      //  fatalError("warning: side too short: \(sideLegVector1.length)")
+                        //  fatalError("warning: side too short: \(sideLegVector1.length)")
                     }
                 }
 
@@ -568,24 +554,22 @@ public struct FromSidesView: ShapeMaker {
                 // offset everything to take account for the side overlap
                 let fastenerStart = if index == 0 || index == 2 { // up, down
                     start +
-                        dir.scaled(by: fullWidth / 2 - state.fastenerWidth / 2) +
-                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                        dir.scaled(by: fullWidth / 2 - state.fastenerWidth / 2)
                 } else if index == 1 || index == 3 { // left, right side
                     start +
                         dir.scaled(by: fullWidth / 2 - state.hookWidth / 2) +
-                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                        dir.scaled(by: state.thickness * 0.5)
                 } else {
                     fatalError("wrong index")
                 }
 
                 let fastenerEnd = if index == 0 || index == 2 { // up, down
                     start +
-                        dir.scaled(by: fullWidth / 2 + state.fastenerWidth / 2) +
-                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                        dir.scaled(by: fullWidth / 2 + state.fastenerWidth / 2)
                 } else if index == 1 || index == 3 { // left, right side
                     start +
                         dir.scaled(by: fullWidth / 2 + state.hookWidth / 2) +
-                        dir.scaled(by: state.thickness * state.gapScalar * 0.5)
+                        dir.scaled(by: state.thickness * 0.5)
                 } else {
                     fatalError("wrong index")
                 }
@@ -655,7 +639,7 @@ public struct FromSidesView: ShapeMaker {
                         CanvasRender.Path {
                             MoveTo(start)
 
-                            Offset(flip ? -dir.scaled(by: state.thickness * state.gapScalar) : Vector(0, 0, 0)) {
+                            Offset(Vector(0, 0, 0)) {
                                 // hook tab
                                 LineTo(fastenerStart + dir.scaled(by: toothReliefRadius))
 

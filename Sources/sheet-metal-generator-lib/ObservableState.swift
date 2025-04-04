@@ -3,7 +3,7 @@ import Combine
 import Foundation
 
 public class InputState: ObservableObject {
-    @PublishedAppStorage("size2") public var size = 25.0
+    @PublishedAppStorage("size3") public var size = 26.0
     @PublishedAppStorage("height") public var height = 50.0
     @PublishedAppStorage("thickness") public var thickness = 1.0
     @PublishedAppStorage("bottomPlateThickness") public var bottomPlateThickness = 3.0
@@ -153,7 +153,7 @@ public class InputState: ObservableObject {
             self.fastenerHoleWidth = 6.0
             self.hookWidth = 10.0
             self.hookDepth = 6.0
-            self.hookIntoSlotOffset = 0.0
+            self.hookIntoSlotOffset = 2.0
             self.fastenerExtraHeight = bottomPlateThickness + thickness * 1
             self.toothKeyRoundingRadius = 1.0
 
