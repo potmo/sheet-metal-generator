@@ -9,3 +9,7 @@ DerivedData/
 .netrc
 IDEWorkspaceChecks.plist
 .swiftpm
+
+# golden.sh output (regenerate with ./golden.sh record)
+/golden/
+/golden-quick/

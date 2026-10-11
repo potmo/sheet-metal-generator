@@ -10,9 +10,10 @@ let package = Package(name: "sheet-metal-generator",
                       products: [
                           .library(name: "sheet-metal-generator-lib", targets: ["sheet-metal-generator-lib"]),
                           .executable(name: "sheet-metal-generator-exec", targets: ["sheet-metal-generator-exec"]),
+                          .executable(name: "sheet-metal-golden", targets: ["sheet-metal-golden"]),
                       ],
                       dependencies: [
-                          .package(name: "swift-canvas-renderer", path: "../../../swift-canvas-renderer"),
+                          .package(name: "swift-canvas-renderer", path: "../../../../../coding/swift-canvas-renderer"),
                       ],
                       targets: [
                           .executableTarget(name: "sheet-metal-generator-exec",
@@ -27,5 +28,13 @@ let package = Package(name: "sheet-metal-generator",
                                   dependencies: [
                                       .product(name: "CanvasRender", package: "swift-canvas-renderer"),
                                   ]),
-
+                          // Headless golden-output CLI (see golden.sh). Mirrors every output path of the app.
+                          .executableTarget(name: "sheet-metal-golden",
+                                            dependencies: [
+                                                .target(name: "sheet-metal-generator-lib"),
+                                                .product(name: "CanvasRender", package: "swift-canvas-renderer"),
+                                            ],
+                                            swiftSettings: [
+                                                .swiftLanguageMode(.v5),
+                                            ]),
                       ])
