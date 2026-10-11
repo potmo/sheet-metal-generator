@@ -23,36 +23,14 @@ struct SheetMetalGenerator: App {
         }
     }
 
-    private static func runDXFProgram(string: String) {
+    /// Writes the drawing as a DXF file, and as a PDF next to it when `pdfPath` is given.
+    private static func export(_ target: DXFRenderTarget, dxfPath: String, pdfPath: String? = nil) {
         do {
-            print("done generating. create dxf and pdf...")
-            let task = Process()
-            let outputPipe = Pipe()
-            let inputPipe = Pipe()
-
-            task.standardOutput = outputPipe
-            task.standardError = outputPipe
-            // task.arguments = ["-c", program]
-            task.executableURL = URL(fileURLWithPath: "/usr/local/bin/python3") // <--updated
-            task.standardInput = inputPipe
-
-            let programData = string.data(using: .utf8)!
-            inputPipe.fileHandleForWriting.writeabilityHandler = { handle in
-                handle.write(programData)
-                handle.closeFile() // Close stdin to signal EOF
-                inputPipe.fileHandleForWriting.writeabilityHandler = nil
+            try target.dxf().write(toFile: dxfPath, atomically: true, encoding: .utf8)
+            if let pdfPath {
+                try target.pdf().write(to: URL(fileURLWithPath: pdfPath))
             }
-
-            try task.run()
-
-            let data = outputPipe.fileHandleForReading.readDataToEndOfFile()
-            let output = String(data: data, encoding: .utf8)!
-
-            task.waitUntilExit()
-
-            print(output)
-            print("all done")
-
+            print("wrote \(dxfPath)")
         } catch {
             print("error \(error)")
         }
@@ -82,7 +60,7 @@ struct SheetMetalGenerator: App {
 
             Button("DXF") {
                 Task {
-                    let dxfTarget = DXFLWLineRenderTarget()
+                    let dxfTarget = DXFRenderTarget()
                     let maker = FromSidesView()
                     print("make dxf")
 
@@ -97,19 +75,16 @@ struct SheetMetalGenerator: App {
                     let shapes = maker.shapes(from: state)
                     shapes.forEach { $0.draw(in: context) }
 
-                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/generated.pdf",
-                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/generated.dxf",
-                                               includeHeader: true)
-
-                    print(string)
-                    Self.runDXFProgram(string: string)
+                    Self.export(dxfTarget,
+                                dxfPath: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/generated.dxf",
+                                pdfPath: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/generated.pdf")
                     print("done")
                 }
             }
 
             Button("DXF baseplate") {
                 Task {
-                    let dxfTarget = DXFLWLineRenderTarget()
+                    let dxfTarget = DXFRenderTarget()
 
                     let oldSize = state.size
                     let oldThickness = state.thickness
@@ -134,11 +109,9 @@ struct SheetMetalGenerator: App {
                     let shapes = maker.shapes(from: state)
                     shapes.forEach { $0.draw(in: context) }
 
-                    let string = dxfTarget.dxf(pdfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/baseplate.pdf",
-                                               dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/baseplate.dxf",
-                                               includeHeader: true)
-
-                    Self.runDXFProgram(string: string)
+                    Self.export(dxfTarget,
+                                dxfPath: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/baseplate.dxf",
+                                pdfPath: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/baseplate.pdf")
                     print("done")
 
                     self.state.size = oldSize
@@ -174,7 +147,7 @@ struct SheetMetalGenerator: App {
                     var planeNumber = 0
 
                     while !normals.isEmpty {
-                        let dxfTarget = DXFLWLineRenderTarget()
+                        let dxfTarget = DXFRenderTarget()
                         let maker = FromSidesView()
 
                         planeNumber += 1
@@ -207,7 +180,7 @@ struct SheetMetalGenerator: App {
                                     }
                                 }
                                 shapes.draw(in: context)
-                                dxfTarget.makeCurrentOpenNodesImmutable()
+                                dxfTarget.finishGroup()
 
                                 print("done plate \(planeNumber) - \(x),\(y), label: \"\(state.firstLabel)\", \(normals.count) left")
                             }
@@ -215,11 +188,7 @@ struct SheetMetalGenerator: App {
 
                         print("done plate \(planeNumber)")
 
-                        let string = dxfTarget.dxf(pdfFileName: nil,
-                                                   dxfFileName: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/box_all_\(planeNumber).dxf",
-                                                   includeHeader: true)
-
-                        Self.runDXFProgram(string: string)
+                        Self.export(dxfTarget, dxfPath: "/Users/nissebergman/Documents/SyncedProjects/art/projects/sheet metal prism/test-files/tomtits/one-piece/output/box_all_\(planeNumber).dxf")
 
                         self.state.size = oldSize
                     }
@@ -286,7 +255,7 @@ struct SheetMetalGenerator: App {
                 let state = state
 
                 /*
-                  let dxfTarget = DXFLWLineRenderTarget()
+                  let dxfTarget = DXFRenderTarget()
                  let staticCamera = StaticCamera(position: Vector(0, 0, 200),
                                                  rotation: Quat(angle: -.pi * 0.5, axis: Vector(1, 0, 0)))
 

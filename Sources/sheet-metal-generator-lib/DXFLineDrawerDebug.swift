@@ -8,9 +8,9 @@ import SwiftUI
 
 public struct DXFLineDrawerDebug: ShapeMaker {
     public typealias StateType = InputState
-    private let target: DXFLWLineRenderTarget
+    private let target: DXFRenderTarget
 
-    public init(target: DXFLWLineRenderTarget) {
+    public init(target: DXFRenderTarget) {
         self.target = target
     }
 
@@ -18,15 +18,20 @@ public struct DXFLineDrawerDebug: ShapeMaker {
         var shapes: [DrawableShape] = []
         let colors: [CanvasColor] = [.red, .blue, .green, .yellow, .orange, .purple, .pink, .black]
 
-        let allNodes = target.openNodes + target.closedNodes
-        for (index, node) in allNodes.enumerated() {
+        // every joined polyline in its own color, its points treated as positions in the XY plane
+        for (index, polyline) in target.polylines.enumerated() {
             let block = CodeBlock { context in
                 context.renderTarget.beginPath()
                 context.renderTarget.setStrokeColor(colors[index % colors.count].cgColor)
-                context.renderTarget.move(to: context.transform(node.head.content.startPoint.vector2D.xyVector3D))
+                context.renderTarget.move(to: context.transform(polyline.segments[0].startPoint.vector2D.xyVector3D))
 
-                for content in node.array {
-                    content.content.draw(in: context)
+                for segment in polyline.segments {
+                    for point in segment.points().dropFirst() {
+                        context.renderTarget.addLine(to: context.transform(point.vector2D.xyVector3D))
+                    }
+                }
+                if polyline.closed {
+                    context.renderTarget.closePath()
                 }
 
                 context.renderTarget.strokePath()

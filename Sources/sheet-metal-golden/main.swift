@@ -3,7 +3,7 @@
 // Headless golden-output generator. Reproduces every output path of the sheet-metal-generator app
 // (SVG / DXF / DXF baseplate / DXF all buttons and every on-screen CanvasView configuration) plus all
 // ShapeMakers / DrawableObjects in sheet-metal-generator-lib, through a recording RenderTarget,
-// DXFLWLineRenderTarget and SVGRenderTarget, for a fixed set of parameter scenarios.
+// DXFRenderTarget and SVGRenderTarget, for a fixed set of parameter scenarios.
 //
 // Usage: sheet-metal-golden --out <dir> [--normals <normals.json>] [--only <scenario>]
 //
@@ -332,8 +332,8 @@ func svgButton(state: InputState) -> String {
     return svgTarget.svg
 }
 
-func dxfButton(state: InputState) -> (String, DXFLWLineRenderTarget) {
-    let dxfTarget = DXFLWLineRenderTarget()
+func dxfButton(state: InputState) -> (String, DXFRenderTarget) {
+    let dxfTarget = DXFRenderTarget()
     let maker = FromSidesView()
 
     let staticCamera = StaticCamera(position: Vector(0, 0, 200),
@@ -347,14 +347,11 @@ func dxfButton(state: InputState) -> (String, DXFLWLineRenderTarget) {
     let shapes = maker.shapes(from: state)
     shapes.forEach { $0.draw(in: context) }
 
-    let string = dxfTarget.dxf(pdfFileName: "generated.pdf",
-                               dxfFileName: "generated.dxf",
-                               includeHeader: true)
-    return (string, dxfTarget)
+    return (dxfTarget.dxf(), dxfTarget)
 }
 
 func dxfBaseplateButton(state: InputState) -> String {
-    let dxfTarget = DXFLWLineRenderTarget()
+    let dxfTarget = DXFRenderTarget()
 
     let oldSize = state.size
     let oldThickness = state.thickness
@@ -378,9 +375,7 @@ func dxfBaseplateButton(state: InputState) -> String {
     let shapes = maker.shapes(from: state)
     shapes.forEach { $0.draw(in: context) }
 
-    let string = dxfTarget.dxf(pdfFileName: "baseplate.pdf",
-                               dxfFileName: "baseplate.dxf",
-                               includeHeader: true)
+    let string = dxfTarget.dxf()
 
     state.size = oldSize
     state.thickness = oldThickness
@@ -411,7 +406,7 @@ func dxfAllButton(state: InputState, maxPlates: Int = .max, maxBoxes: Int = .max
     var boxCount = 0
 
     while !normals.isEmpty, planeNumber < maxPlates, boxCount < maxBoxes {
-        let dxfTarget = DXFLWLineRenderTarget()
+        let dxfTarget = DXFRenderTarget()
         let maker = FromSidesView()
         var labels: [String] = []
 
@@ -446,15 +441,13 @@ func dxfAllButton(state: InputState, maxPlates: Int = .max, maxBoxes: Int = .max
                     }
                 }
                 shapes.draw(in: context)
-                dxfTarget.makeCurrentOpenNodesImmutable()
+                dxfTarget.finishGroup()
 
                 labels.append("\(x),\(y) size=\(state.size) label=\(state.firstLabel)")
             }
         }
 
-        let string = dxfTarget.dxf(pdfFileName: nil,
-                                   dxfFileName: "box_all_\(planeNumber).dxf",
-                                   includeHeader: true)
+        let string = dxfTarget.dxf()
         results.append((string, labels))
         log("  dxf all: plate \(planeNumber) done, \(normals.count) normals left")
 
@@ -463,6 +456,15 @@ func dxfAllButton(state: InputState, maxPlates: Int = .max, maxBoxes: Int = .max
     }
 
     return results
+}
+
+/// The PDF's page count and size; the bytes themselves contain the creation date.
+func pdfSummary(_ data: Data) -> String {
+    guard let provider = CGDataProvider(data: data as CFData), let document = CGPDFDocument(provider), let page = document.page(at: 1) else {
+        return "invalid PDF\n"
+    }
+    let box = page.getBoxRect(.mediaBox)
+    return String(format: "pages %d\nmediaBox %.3f %.3f %.3f %.3f\n", document.numberOfPages, box.minX, box.minY, box.width, box.height)
 }
 
 // MARK: - On-screen views
@@ -512,7 +514,7 @@ func appViewConfigurations(state: InputState) -> [(name: String, transform: Rend
 
 // MARK: - Run scenarios
 
-var debugDXFTarget: DXFLWLineRenderTarget?
+var debugDXFTarget: DXFRenderTarget?
 
 for scenario in scenarios {
     if let onlyScenario, onlyScenario != scenario.name {
@@ -527,7 +529,8 @@ for scenario in scenarios {
 
     // DXF button
     let (dxf, dxfTarget) = dxfButton(state: makeState(scenario.params))
-    write(dxf, to: "\(dir)/button-dxf.py")
+    write(dxf, to: "\(dir)/button-dxf.dxf")
+    write(pdfSummary(dxfTarget.pdf()), to: "\(dir)/button-dxf.pdf.txt")
     if debugDXFTarget == nil {
         debugDXFTarget = dxfTarget
     }
@@ -535,7 +538,7 @@ for scenario in scenarios {
     // DXF baseplate button (also verify it restores size/thickness like the app)
     if !quick {
         let state = makeState(scenario.params)
-        write(dxfBaseplateButton(state: state), to: "\(dir)/button-dxf-baseplate.py")
+        write(dxfBaseplateButton(state: state), to: "\(dir)/button-dxf-baseplate.dxf")
         precondition(state.size == scenario.params.size && state.thickness == scenario.params.thickness)
     }
 
@@ -547,7 +550,7 @@ for scenario in scenarios {
             : dxfAllButton(state: state, maxPlates: scenarioPlateLimit[scenario.name] ?? .max)
         var index: [String] = []
         for (plateIndex, plate) in plates.enumerated() {
-            let name = String(format: "button-dxf-all-plate-%02d.py", plateIndex + 1)
+            let name = String(format: "button-dxf-all-plate-%02d.dxf", plateIndex + 1)
             write(plate.script, to: "\(dir)/\(name)")
             index.append("# \(name)")
             index.append(contentsOf: plate.labels)
@@ -560,7 +563,7 @@ for scenario in scenarios {
             write("staticNormal = \(state.staticNormal.map { "\($0.x), \($0.y), \($0.z)" } ?? "nil")\nfirstLabel = \(state.firstLabel)\n" + Params(reading: state).dump,
                   to: "\(dir)/after-dxf-all/params.txt")
             write(svgButton(state: state), to: "\(dir)/after-dxf-all/button-svg.svg")
-            write(dxfButton(state: state).0, to: "\(dir)/after-dxf-all/button-dxf.py")
+            write(dxfButton(state: state).0, to: "\(dir)/after-dxf-all/button-dxf.dxf")
             for view in appViewConfigurations(state: state) {
                 write(record(maker: FromSidesView(), state: state, transform: view.transform), to: "\(dir)/after-dxf-all/\(view.name).rec.txt")
             }
@@ -665,21 +668,13 @@ func runMakers() {
 
         // DXF backend, with the DXF button's camera/transform2d
         do {
-            let dxfTarget = DXFLWLineRenderTarget()
+            let dxfTarget = DXFRenderTarget()
             let context = RenderContext(canvasSize: Vector2D(1000, 1000),
                                         renderTarget: dxfTarget,
                                         transform2d: CGAffineTransform(scaleX: 1, y: 1),
                                         transform3d: OrthographicTransform(camera: exportCamera))
             maker.shapes(from: state).forEach { $0.draw(in: context) }
-            write(dxfTarget.dxf(pdfFileName: "generated.pdf", dxfFileName: "generated.dxf", includeHeader: true),
-                  to: "\(dir)/dxf-export-camera.py")
-            if name == "FromSidesView" {
-                // other branches of dxf(): no header, no pdf; and no dxf file name at all
-                write(dxfTarget.dxf(pdfFileName: nil, dxfFileName: "generated.dxf", includeHeader: false),
-                      to: "\(dir)/dxf-export-camera-noheader-nopdf.py")
-                write(dxfTarget.dxf(pdfFileName: "generated.pdf", dxfFileName: nil, includeHeader: true),
-                      to: "\(dir)/dxf-export-camera-nodxfname.py")
-            }
+            write(dxfTarget.dxf(), to: "\(dir)/dxf-export-camera.dxf")
         }
     }
 }
