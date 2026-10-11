@@ -3,7 +3,7 @@ import Combine
 import Foundation
 
 public class InputState: ObservableObject {
-    @PublishedAppStorage("size3") public var size = 26.0
+    @PublishedAppStorage("size4") public var size = 26.0
     @PublishedAppStorage("height") public var height = 50.0
     @PublishedAppStorage("thickness") public var thickness = 1.0
     @PublishedAppStorage("bottomPlateThickness") public var bottomPlateThickness = 3.0

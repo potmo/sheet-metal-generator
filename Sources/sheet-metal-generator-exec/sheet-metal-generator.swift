@@ -88,7 +88,7 @@ struct SheetMetalGenerator: App {
 
                     let oldSize = state.size
                     let oldThickness = state.thickness
-                    self.state.size = 26
+                    self.state.size = 26.5
                     self.state.thickness = 1.1
                     let normals: [MirrorNormal] = JsonNormals.normals
 
@@ -106,7 +106,7 @@ struct SheetMetalGenerator: App {
                                                 renderTarget: dxfTarget,
                                                 transform2d: CGAffineTransform(scaleX: 1, y: 1),
                                                 transform3d: renderTransform)
-                    let shapes = maker.shapes(from: state)
+                    let shapes = maker.shapes(from: self.state)
                     shapes.forEach { $0.draw(in: context) }
 
                     Self.export(dxfTarget,

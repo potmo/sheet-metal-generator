@@ -632,7 +632,7 @@ public struct FromSidesView: ShapeMaker {
                 }
 
                 // left and right
-                Decoration(hidden: index != 3 && index != 1) {
+                Decoration(color: .red, hidden: index != 3 && index != 1) {
                     let flip = index == 1
 
                     Flip(at: start + (end - start).scaled(by: 0.5), around: perpDir, by: flip ? .pi : 0) {
